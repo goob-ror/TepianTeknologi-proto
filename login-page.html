@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login To The Site</title>
+    <link rel="stylesheet" href="/assets/css/output.css">
+    <link rel="stylesheet" href="/assets/css/login-page.css">
+    <script defer src="/assets/js/login-page.js"></script>
+</head>
+<body>
+    <main>
+        <div class="card">
+            <div class="login-content">
+                <div class="image-content">
+                    <button type="button" class="rounded-2xl w-20">
+                        Log In
+                    </button>
+                    <button type="button">
+                        Sign In
+                    </button>
+                </div>
+                <div class="login-forms">
+                    <div class="login space-y-4 p-6 bg-white">
+                        <form action="" method="POST" class="flex flex-col gap-2">
+                            <h4 class="text-xl font-semibold text-black mb-6 text-center">Log In</h4>
+                            <label for="login-username" class="text-sm font-medium text-black">Input Username :</label>
+                            <input type="text" id="login-username" name="username" placeholder="Username" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-700 focus:border-blue-700">
+
+                            <label for="login-password" class="text-sm font-medium text-gray-700">Input Password :</label>
+                            <div class="relative">
+                                <input type="password" name="password" id="login-password" placeholder="Password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <button type="button" class="password-toggle absolute inset-y-0 right-0 px-3 flex items-center" data-target="login-password">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <button type="submit" name="login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 mt-4">Submit</button>
+                        </form>
+                    </div>
+                    <div class="signin space-y-4 p-6 bg-white hidden">
+                        <form action="" method="POST" class="flex flex-col gap-2">
+                            <h4 class="text-xl font-semibold text-black mb-2">Sign In</h4>
+                            <label for="signin-username" class="text-sm font-medium text-black">Input Username :</label>
+                            <input type="text" id="signin-username" name="username" placeholder="Username" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-700 focus:border-blue-700">
+
+                            <label for="signin-password" class="text-sm font-medium text-gray-700">Input Password :</label>
+                            <div class="relative">
+                                <input type="password" name="password" id="signin-password" placeholder="Password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <button type="button" class="password-toggle absolute inset-y-0 right-0 px-3 flex items-center" data-target="signin-password">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <button type="submit" name="signin" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 mt-4">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
