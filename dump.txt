@@ -1,3 +1,86 @@
+dumping trash backup :
+
+<main class="">
+        <div class="card">
+            <div class="login-content">
+                <div class="image-content">
+                    <button type="button" class="rounded-2xl w-20">
+                        Log In
+                    </button>
+                    <button type="button">
+                        Sign In
+                    </button>
+                </div>
+                <div class="login-forms">
+                    <div class="login space-y-4 p-6 bg-white">
+                        <form action="" method="POST" class="flex flex-col gap-2">
+                            <h4 class="text-xl font-semibold text-black mb-6 text-center">Log In</h4>
+                            <label for="login-username" class="text-sm font-medium text-black">Input Username :</label>
+                            <input type="text" id="login-username" name="username" placeholder="Username" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-700 focus:border-blue-700">
+
+                            <label for="login-password" class="text-sm font-medium text-gray-700">Input Password :</label>
+                            <div class="relative">
+                                <input type="password" name="password" id="login-password" placeholder="Password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <button type="button" class="password-toggle absolute inset-y-0 right-0 px-3 flex items-center" data-target="login-password">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <button type="submit" name="login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 mt-4">Submit</button>
+                        </form>
+                    </div>
+                    <div class="signin space-y-4 p-6 bg-white hidden">
+                        <form action="" method="POST" class="flex flex-col gap-2">
+                            <h4 class="text-xl font-semibold text-black mb-2">Sign In</h4>
+                            <label for="signin-username" class="text-sm font-medium text-black">Input Username :</label>
+                            <input type="text" id="signin-username" name="username" placeholder="Username" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-700 focus:border-blue-700">
+
+                            <label for="signin-password" class="text-sm font-medium text-gray-700">Input Password :</label>
+                            <div class="relative">
+                                <input type="password" name="password" id="signin-password" placeholder="Password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <button type="button" class="password-toggle absolute inset-y-0 right-0 px-3 flex items-center" data-target="signin-password">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <button type="submit" name="signin" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 mt-4">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+function switchLoginForm() {
+    let loginForm = document.querySelector('.login');
+    let signinForm = document.querySelector('.singin');
+    if(loginForm.classList.contains('hidden')) {
+        loginForm.classList.remove('hidden');
+        signinForm.classList.add('hidden');
+    } else {
+        signinForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+    }
+}
+
+function switchSigninForm() {
+    let loginForm = document.querySelector('.login');
+    let signinForm = document.querySelector('.singin');
+    if(signinForm.classList.contains('hidden')) {
+        signinForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+    } else {
+        loginForm.classList.remove('hidden');
+        signinForm.classList.add('hidden');
+    }
+}
+
 /*! tailwindcss v4.0.15 | MIT License | https://tailwindcss.com */
 @layer theme, base, components, utilities;
 @layer theme {
@@ -9,7 +92,6 @@
     --color-red-500: oklch(0.637 0.237 25.331);
     --color-green-600: oklch(0.627 0.194 149.214);
     --color-green-700: oklch(0.527 0.154 150.069);
-    --color-blue-300: oklch(0.809 0.105 251.813);
     --color-blue-400: oklch(0.707 0.165 254.624);
     --color-blue-600: oklch(0.546 0.245 262.881);
     --color-blue-700: oklch(0.488 0.243 264.376);
@@ -471,9 +553,6 @@
   }
   .min-h-screen {
     min-height: 100vh;
-  }
-  .w-1 {
-    width: calc(var(--spacing) * 1);
   }
   .w-1\/2 {
     width: calc(1/2 * 100%);
@@ -1130,9 +1209,6 @@
   }
   .bg-\[var\(--my_variable\)\] {
     background-color: var(--my_variable);
-  }
-  .bg-blue-300 {
-    background-color: var(--color-blue-300);
   }
   .bg-blue-400 {
     background-color: var(--color-blue-400);

@@ -1,0 +1,57 @@
+@import url("https://fonts.googleapis.com/css?family=Montserrat:400,700");
+
+body {
+  display: grid;
+}
+
+main {
+  width: 100%;
+  height: 100vh;
+  z-index: 1;
+}
+
+.background {
+  position: fixed;
+  background-color: #131217;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -10;
+  overflow: hidden;
+}
+
+.background #pattern {
+  position: absolute;
+  top: -44px;
+  left: -50px;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.background #gradient {
+  background: radial-gradient(#6898ff, transparent 50%);
+  width: 400px;
+  height: 400px;
+  position: absolute;
+  top: -200px;
+  left: -200px;
+  transform: translate(200px, 200px);
+}
+
+nav {
+
+}
+
+.logo {
+    display: flex;
+    width: 160px;
+    height: 80px;
+    margin: 20px 20px 0 20px;
+}
+
+nav ul{
+    justify-content: center;
+}
