@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Enum\UserRole;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -21,6 +22,7 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('auth/login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => $request->session()->get('status'),
+            'role' => $request->session()->get('role'),
         ]);
     }
 
@@ -33,7 +35,17 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = Auth::user();
+
+        if ($user->role === UserRole::admin) {
+            return redirect()->intended(route('admin.dashboard', absolute: false));
+        }
+
+        if ($user->role === UserRole::user) {
+            return redirect()->intended(route('dashboard', absolute: false));
+        }
+
+        abort(403, 'Unauthorized User!');
     }
 
     /**
