@@ -15,11 +15,14 @@ return new class extends Migration
             $table->id();
             $table->string('nama_produk');
             $table->string('brand_produk');
-            $table->foreignId('kategori_id')->references('id')->on('kategoris')->onDelete('cascade');
-            $table->string('deskripsi_produk')->nullable();
+            $table->foreignId('kategori_id')
+                    ->references('id')
+                    ->on('kategoris')
+                    ->onDelete('cascade');
+            $table->text('deskripsi_produk')->nullable();
             $table->string('gambar_produk');
             $table->decimal('harga_produk', 12, 3);
-            $table->unsignedInteger('stock_produk');
+            $table->unsignedInteger('stock_produk')->default(0);
             $table->timestamps();
         });
     }

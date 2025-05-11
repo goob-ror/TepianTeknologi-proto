@@ -20,6 +20,6 @@ class RoleCheckAdmin
         if(auth()->check() && auth()->user()->role === UserRole::admin) {
             return $next($request);
         }
-        abort(403, "Unauthorized Access!");
+        return redirect()->route('dashboard');
     }
 }
