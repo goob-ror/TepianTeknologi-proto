@@ -1,41 +1,42 @@
 import { NavFooter } from '@/components/admin/nav-footer';
 import { NavMain } from '@/components/admin/nav-main';
 import { NavUser } from '@/components/admin/nav-user';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarDropdown } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Users, Calendar, Settings } from 'lucide-react';
+import {
+    BookOpen,
+    Folder,
+    LayoutGrid,
+    Users,
+    Tag,
+    Settings,
+    ShoppingCart,
+    BarChart3,
+    UserCog,
+    KeyRound,
+    Palette,
+    Store
+} from 'lucide-react';
 import AppLogo from '../app-logo';
 
 const mainNavItems: NavItem[] = [
+    // Dashboard Section
     {
         title: 'Dashboard',
         href: '/admin/dashboard',
         icon: LayoutGrid,
     },
+
+    // E-commerce Section
     {
-        title: 'Manage Users',
-        href: '/admin/users',
-        icon: Users,
-        dropdown: [
-            {
-                title: 'View Users',
-                href: '/admin/users/view',
-            },
-            {
-                title: 'Add User',
-                href: '/admin/users/add',
-            },
-        ],
-    },
-    {
-        title: 'Manage Product',
+        title: 'Products',
         href: '/admin/products',
-        icon: Folder,
+        icon: Store,
         dropdown: [
             {
-                title: 'View Products',
-                href: '/admin/products/view',
+                title: 'All Products',
+                href: '/admin/products',
             },
             {
                 title: 'Add Product',
@@ -44,12 +45,12 @@ const mainNavItems: NavItem[] = [
         ],
     },
     {
-        title: 'Manage Categories',
+        title: 'Categories',
         href: '/admin/categories',
-        icon: Calendar,
+        icon: Tag,
         dropdown: [
             {
-                title: 'View Categories',
+                title: 'All Categories',
                 href: '/admin/categories',
             },
             {
@@ -59,13 +60,45 @@ const mainNavItems: NavItem[] = [
         ],
     },
     {
-        title: 'Manage Admin',
-        href: '/admin/admins',
-        icon: Settings,
+        title: 'Orders',
+        href: '/admin/orders',
+        icon: ShoppingCart,
         dropdown: [
             {
-                title: 'View Admins',
-                href: '/admin/admins/view',
+                title: 'All Orders',
+                href: '/admin/orders',
+            },
+            {
+                title: 'Pending Orders',
+                href: '/admin/orders/pending',
+            },
+        ],
+    },
+
+    // User Management Section
+    {
+        title: 'Users',
+        href: '/admin/users',
+        icon: Users,
+        dropdown: [
+            {
+                title: 'All Users',
+                href: '/admin/users',
+            },
+            {
+                title: 'Add User',
+                href: '/admin/users/add',
+            },
+        ],
+    },
+    {
+        title: 'Admins',
+        href: '/admin/admins',
+        icon: UserCog,
+        dropdown: [
+            {
+                title: 'All Admins',
+                href: '/admin/admins',
             },
             {
                 title: 'Add Admin',
@@ -73,23 +106,56 @@ const mainNavItems: NavItem[] = [
             },
         ],
     },
+
+    // Reports Section
+    {
+        title: 'Reports',
+        href: '/admin/reports',
+        icon: BarChart3,
+        dropdown: [
+            {
+                title: 'Sales Report',
+                href: '/admin/reports/sales',
+            },
+            {
+                title: 'Inventory Report',
+                href: '/admin/reports/inventory',
+            },
+        ],
+    },
+
+    // Settings Section
+    {
+        title: 'Settings',
+        href: '/admin/settings',
+        icon: Settings,
+        dropdown: [
+            {
+                title: 'Profile',
+                href: '/admin/settings/profile',
+            },
+            {
+                title: 'Password',
+                href: '/admin/settings/password',
+            },
+            {
+                title: 'Appearance',
+                href: '/admin/settings/appearance',
+            },
+        ],
+    },
 ];
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits',
+        title: 'Help Center',
+        href: '/admin/help',
         icon: BookOpen,
     },
     {
-        title: 'Support',
-        href: 'https://laravel.com/support',
-        icon: Users,
+        title: 'Documentation',
+        href: '/admin/docs',
+        icon: Folder,
     },
 ];
 

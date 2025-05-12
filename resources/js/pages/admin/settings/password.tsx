@@ -13,8 +13,12 @@ import { Label } from '@/components/ui/label';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Password settings',
-        href: '/settings/password',
+        title: 'Settings',
+        href: '/admin/settings',
+    },
+    {
+        title: 'Password',
+        href: '/admin/settings/password',
     },
 ];
 

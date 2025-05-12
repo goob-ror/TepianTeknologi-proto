@@ -157,3 +157,17 @@
         @apply bg-background text-foreground;
     }
 }
+
+@layer components {
+  select option {
+    background-color: white;
+    color: black;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    select option {
+      background-color: black;
+      color: white;
+    }
+  }
+}

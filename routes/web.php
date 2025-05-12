@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\admin\CategoryController;
 use App\Http\Controllers\admin\UserController;
+use App\Http\Controllers\ProductController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -22,22 +23,30 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/categories', [CategoryController::class, 'index']);
-    Route::post('/categories', [CategoryController::class, 'store']);
-    Route::get('/categories/{id}/delete', [CategoryController::class, 'destroy']);
-    Route::get('/categories/add', function () {
-        return Inertia::render('admin/category/add');
-    });
+    // Category routes
+    Route::get('/categories', [CategoryController::class, 'index'])->name('admin.categories.index');
+    Route::get('/categories/add', [CategoryController::class, 'create'])->name('admin.categories.create');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('admin.categories.store');
+    Route::get('/categories/{id}/edit', [CategoryController::class, 'edit'])->name('admin.categories.edit');
+    Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('admin.categories.update');
+    Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('admin.categories.destroy');
 
-    Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users', function () {
+        return Inertia::render('admin/user/index');
+    });
     Route::get('/users/{id}/soft-delete', [UserController::class, 'softDelete']);
     Route::get('/users/add', function () {
-        return Inertia::render('admin/user/add');
+        return Inertia::render('admin/user/create');
     });
 
-    Route::get('/products/add', function () {
-        return Inertia::render('admin/product/create');
-    });
+    // Product routes
+    Route::get('/products', [ProductController::class, 'index'])->name('admin.products.index');
+    Route::get('/products/add', [ProductController::class, 'create'])->name('admin.products.create');
+    Route::post('/products', [ProductController::class, 'store'])->name('admin.products.store');
+    Route::get('/products/{id}', [ProductController::class, 'show'])->name('admin.products.show');
+    Route::get('/products/{id}/edit', [ProductController::class, 'edit'])->name('admin.products.edit');
+    Route::put('/products/{id}', [ProductController::class, 'update'])->name('admin.products.update');
+    Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('admin.products.destroy');
 });
 
 require __DIR__.'/settings.php';

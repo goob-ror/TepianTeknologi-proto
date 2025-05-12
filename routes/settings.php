@@ -21,7 +21,7 @@ Route::middleware(['auth', 'verified', 'user'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
-    Route::redirect('settings', 'settings/profile');
+    Route::redirect('admin/settings', 'admin/settings/profile');
 
     Route::get('admin/settings/profile', [ProfileController::class, 'edit'])->name('admin.profile.edit');
     Route::patch('admin/settings/profile', [ProfileController::class, 'update'])->name('admin.profile.update');
@@ -30,7 +30,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('admin/settings/password', [PasswordController::class, 'edit'])->name('admin.password.edit');
     Route::put('admin/settings/password', [PasswordController::class, 'update'])->name('admin.password.update');
 
-    Route::get('settings/appearance', function () {
-        return Inertia::render('settings/appearance');
-    })->name('appearance');
+    Route::get('admin/settings/appearance', function () {
+        return Inertia::render('admin/settings/appearance');
+    })->name('admin.appearance');
 });

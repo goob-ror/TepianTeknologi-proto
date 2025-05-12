@@ -15,11 +15,18 @@ export interface NavGroup {
     items: NavItem[];
 }
 
+export interface NavSubItem {
+    title: string;
+    href: string;
+    isActive?: boolean; // Optional: if you want to highlight active sub-items
+}
+
 export interface NavItem {
     title: string;
     href: string;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    dropdown?: NavSubItem[];
 }
 
 export interface SharedData {

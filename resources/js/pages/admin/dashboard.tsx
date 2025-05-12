@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: '/admin/dashboard',
     },
 ];
 
@@ -68,16 +68,25 @@ const salesData = [
     { name: 'Jun', value: 3000 },
 ];
 
+interface Product {
+    id: number;
+    nama_produk: string;
+    brand_produk: string;
+    harga_produk: number;
+    stock_produk: number;
+    created_at: string;
+}
+
 export default function Dashboard() {
-    const [lowStockProducts, setLowStockProducts] = useState([]);
-    const [recentProducts, setRecentProducts] = useState([]);
-    
+    const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
+    const [recentProducts, setRecentProducts] = useState<Product[]>([]);
+
     useEffect(() => {
         // Filter products with stock less than 10
         setLowStockProducts(sampleProducts.filter(product => product.stock_produk < 10));
-        
+
         // Get the 5 most recent products
-        setRecentProducts([...sampleProducts].sort((a, b) => 
+        setRecentProducts([...sampleProducts].sort((a, b) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         ).slice(0, 5));
     }, []);
@@ -87,46 +96,46 @@ export default function Dashboard() {
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-                
+
                 {/* Stats Row */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <StatCard 
-                        title="Total Users" 
-                        value="120" 
+                    <StatCard
+                        title="Total Users"
+                        value="120"
                         icon={Users}
                         trend={{ value: 12, isPositive: true }}
                     />
-                    <StatCard 
-                        title="Total Products" 
-                        value="45" 
+                    <StatCard
+                        title="Total Products"
+                        value="45"
                         icon={Package}
                         trend={{ value: 8, isPositive: true }}
                     />
-                    <StatCard 
-                        title="Monthly Sales" 
-                        value="Rp 24,500,000" 
+                    <StatCard
+                        title="Monthly Sales"
+                        value="Rp 24,500,000"
                         icon={ShoppingCart}
                         trend={{ value: 5, isPositive: true }}
                     />
-                    <StatCard 
-                        title="Revenue Growth" 
-                        value="18%" 
+                    <StatCard
+                        title="Revenue Growth"
+                        value="18%"
                         icon={TrendingUp}
                         description="Year over year growth"
                         trend={{ value: 3, isPositive: false }}
                     />
                 </div>
-                
+
                 {/* Chart and Low Stock Products */}
                 <div className="grid gap-4 md:grid-cols-3">
-                    <ProductsChart 
-                        data={salesData} 
+                    <ProductsChart
+                        data={salesData}
                         title="Monthly Sales"
                         className="md:col-span-2"
                     />
                     <LowStockProducts products={lowStockProducts} />
                 </div>
-                
+
                 {/* Recent Products Table */}
                 <RecentProductsTable products={recentProducts} />
             </div>
