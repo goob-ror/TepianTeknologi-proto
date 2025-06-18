@@ -1,6 +1,38 @@
 @import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Istok+Web:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
 
 @plugin 'tailwindcss-animate';
+
+/* Root CSS Variables from templates/css/root.css */
+:root {
+    --primary-color: #0B46F9;
+    --secondary-color: #FFFFFF;
+    --tertiary-color: #7D7D7D;
+
+    --main-font: 'Montserrat', sans-serif;
+    --secondary-font: 'Istok Web', sans-serif;
+
+    --light-text: #FFFFFF;
+    --dark-text: #000000;
+    --grey-text: #53535B;
+    --color-white: #FFFFFF;
+
+    --font-size-small: 12px;
+    --font-size-medium: 16px;
+    --font-size-large: 20px;
+    --font-size-xlarge: 24px;
+    --font-size-xxlarge: 32px;
+
+    --font-weight-light: 300;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    --font-weight-black: 900;
+}
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -9,7 +41,7 @@
 
 @theme {
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        'Montserrat', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -78,14 +110,43 @@
 }
 
 :root {
+    /* Font families */
+    --font-main: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-secondary: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    /* Font sizes */
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+
+    /* Font weights */
+    --font-weight-light: 300;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    --font-weight-black: 900;
+
+    /* Colors from template */
+    --color-primary: #0B46F9;
+    --color-secondary: #FFFFFF;
+    --color-tertiary: #7D7D7D;
+    --color-grey-text: #53535B;
+    --color-dark-text: #000000;
+    --color-light-text: #FFFFFF;
+
+    /* Rest of your existing root variables */
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
+    --primary: #0B46F9;
+    --primary-foreground: #FFFFFF;
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
@@ -155,7 +216,34 @@
 
     body {
         @apply bg-background text-foreground;
+        font-family: var(--main-font);
+        color: var(--dark-text);
     }
+}
+
+/* Additional utility classes for text colors */
+.text-primary-color {
+    color: var(--primary-color) !important;
+}
+
+.text-grey-text {
+    color: var(--grey-text) !important;
+}
+
+.text-light-text {
+    color: var(--light-text) !important;
+}
+
+.text-dark-text {
+    color: var(--dark-text) !important;
+}
+
+.bg-primary-color {
+    background-color: var(--primary-color) !important;
+}
+
+.bg-secondary-color {
+    background-color: var(--secondary-color) !important;
 }
 
 @layer components {
@@ -170,4 +258,516 @@
       color: white;
     }
   }
+}
+
+/* Custom styles for Katalog page */
+.font-main {
+    font-family: var(--main-font);
+}
+
+/* Aside styles */
+aside {
+    width: 300px;
+    background-color: var(--secondary-color);
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    height: 1150px;
+}
+
+.filter-section {
+    width: 100%;
+}
+
+.filter-content-text {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    margin-bottom: 20px;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.filter-content-text h1 {
+    font-family: var(--main-font);
+    font-size: var(--font-size-xlarge);
+    font-weight: var(--font-weight-semibold);
+    color: var(--grey-text);
+    margin: 0;
+    padding-bottom: 5px;
+}
+
+.filter-content-text img {
+    width: 40px;
+    height: 40px;
+    margin-bottom: -5px;
+}
+
+.filter-content-text hr {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background-color: #D9D9D9;
+    border: none;
+    margin: 0 0 0 0;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
+/* Katalog section styles */
+.katalog-section {
+    flex: 1;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--secondary-color);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 800px;
+}
+
+.katalog-content {
+    flex: 1;
+}
+
+.katalog-header {
+    margin-bottom: 10px;
+}
+
+.katalog-header h1 {
+    font-family: var(--main-font);
+    font-size: var(--font-size-xlarge);
+    font-weight: var(--font-weight-bold);
+    color: var(--grey-text);
+    margin-bottom: 15px;
+}
+
+.katalog-header hr {
+    border: none;
+    border-top: 3px solid #D9D9D9;
+    width: 250px;
+    margin-bottom: 30px;
+}
+
+.katalog-products {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    margin: 10px 0 0 0;
+}
+
+.products {
+    background-color: var(--secondary-color);
+    text-align: left;
+    border: #d9d9d9 solid 1px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding: 0;
+}
+
+.products a {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.products img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    margin: 0;
+    display: block;
+}
+
+.products h1 {
+    font-size: 14px;
+    color: var(--grey-text);
+    margin: 10px 0 15px 0;
+    padding: 0 8px 0 8px;
+    font-weight: var(--font-weight-semibold);
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1.2;
+}
+
+.products p {
+    color: var(--primary-color);
+    font-size: 13px;
+    font-weight: var(--font-weight-semibold);
+    margin: 0;
+    padding: 0 8px 10px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: auto;
+    line-height: 1.2;
+}
+
+.products .diskon-price {
+    color: #fa766a;
+    font-size: 14px;
+    text-decoration: line-through;
+    margin: 0;
+    padding: 0 10px;
+}
+
+.products .price-cart {
+    width: 30px;
+    height: 25px;
+}
+
+.products .diskon-tag {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: #ff4444;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.products .diskon-tag h2 {
+    font-size: 12px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.products .terbaru-tag {
+    background-color: #22c55e;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 4px;
+}
+
+/* Pagination styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.page-btn {
+    padding: 8px 16px;
+    border: 2px solid var(--primary-color);
+    background: transparent;
+    color: var(--primary-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.page-btn.active,
+.page-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Filter header styles */
+.filter-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.filter-header h2 {
+    font-family: var(--main-font);
+    font-size: var(--font-size-medium);
+    font-weight: var(--font-weight-regular);
+    margin: 0 20px 0 0;
+    padding: 0 250px 0 0;
+}
+
+.filter-header img {
+    height: 30px;
+    width: 30px;
+    margin: 0 0 0 10px;
+}
+
+/* Price filter dropdown specific styles */
+.filter-price-dropdown {
+    padding: 5px 15px;
+    width: 250px;
+    border: 2px solid #D9D9D9;
+    background-color: var(--secondary-color);
+    border-radius: 15px;
+    position: absolute;
+    z-index: 10;
+    top: 395px;
+}
+
+.price-filter-options {
+    padding: 0 0 10px 0;
+}
+
+.price-filter-options hr {
+    width: 200px;
+    margin-bottom: 15px;
+}
+
+.dropdown-button {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    width: 100%;
+}
+
+.dropdown-button span {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.dropdown-button span p {
+    margin: 0;
+}
+
+.dropdown-button span img {
+    margin-left: auto;
+}
+
+.dropdown-button-arrow {
+    transition: transform 0.3s ease;
+}
+
+.price-filter-options .price-range {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-size-small);
+}
+
+/* Slider styles */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: #D9D9D9;
+    border-radius: 2px;
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+/* Custom checkbox styles */
+.checkbox-item input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 0px;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 0 5px;
+}
+
+.checkbox-item input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #D9D9D9;
+    border-radius: 4px;
+    margin-right: 10px;
+    position: relative;
+    cursor: pointer;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+.checkbox-item input[type="radio"]:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.checkbox-item input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border-radius: 2px;
+}
+
+.checkbox-item label {
+    cursor: pointer;
+    font-family: var(--main-font);
+    font-size: var(--font-size-small);
+    color: var(--grey-text);
+    flex-grow: 1;
+}
+
+/* Product card styles */
+.products {
+    text-align: left;
+}
+
+.products .diskon-tag {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: #ff4444;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.products .terbaru-tag {
+    background-color: #22c55e;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 4px;
+}
+
+.products .diskon-price {
+    color: #fa766a;
+    text-decoration: line-through;
+}
+
+.products .price-cart {
+    width: 30px;
+    height: 25px;
+}
+
+/* Custom spacing utilities */
+.w-75 {
+    width: 300px;
+}
+
+.w-62\.5 {
+    width: 250px;
+}
+
+.w-50 {
+    width: 200px;
+}
+
+.h-12\.5 {
+    height: 50px;
+}
+
+.w-12\.5 {
+    width: 50px;
+}
+
+.gap-7\.5 {
+    gap: 30px;
+}
+
+.gap-2\.5 {
+    gap: 10px;
+}
+
+.mb-7\.5 {
+    margin-bottom: 30px;
+}
+
+.mb-3\.75 {
+    margin-bottom: 15px;
+}
+
+.mt-3\.75 {
+    margin-top: 15px;
+}
+
+.pt-3\.75 {
+    padding-top: 15px;
+}
+
+.pb-2\.5 {
+    padding-bottom: 10px;
+}
+
+.px-3\.75 {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.py-1\.25 {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.px-1\.25 {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.pr-62\.5 {
+    padding-right: 250px;
+}
+
+.rounded-3\.75 {
+    border-radius: 15px;
+}
+
+.border-t-3 {
+    border-top-width: 3px;
+}
+
+.w-4\.5 {
+    width: 18px;
+}
+
+.h-4\.5 {
+    height: 18px;
+}
+
+.mr-2\.5 {
+    margin-right: 10px;
+}
+
+.w-7\.5 {
+    width: 30px;
+}
+
+.h-6\.25 {
+    height: 25px;
 }

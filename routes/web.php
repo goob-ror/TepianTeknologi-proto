@@ -7,8 +7,32 @@ use App\Http\Controllers\admin\UserController;
 use App\Http\Controllers\ProductController;
 
 Route::get('/', function () {
-    return Inertia::render('welcome');
+    return Inertia::render('home');
 })->name('home');
+
+Route::get('/katalog', function () {
+    return Inertia::render('katalog');
+})->name('katalog');
+
+Route::get('/detail-produk', function () {
+    return Inertia::render('detail-produk');
+})->name('detail-produk');
+
+Route::get('/history', function () {
+    return Inertia::render('history');
+})->name('history');
+
+Route::get('/checkout', function () {
+    return Inertia::render('checkout');
+})->name('checkout');
+
+Route::get('/about', function () {
+    return Inertia::render('about');
+})->name('about');
+
+Route::get('/contact', function () {
+    return Inertia::render('contact');
+})->name('contact');
 
 Route::middleware(['auth', 'verified', 'user'])->group(function () {
     Route::get('dashboard', function () {

@@ -1,0 +1,123 @@
+@import url('root.css');
+
+.history-section {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding: 30px 30px;
+    margin: 50px 100px 30px 100px;
+    background-color: var(--secondary-color);
+}
+
+.history-selection {
+    margin: 0 20px 0 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.history-selection button {
+    width: 550px;
+    padding: 10px 20px;
+    background-color: var(--secondary-color);
+    font-family: var(--main-font);
+    font-size: var(--font-size-medium);
+    font-weight: var(--font-weight-semibold);
+    border: 1px solid var(--primary-color);
+    color: #FA766A;
+    cursor: pointer;
+}
+
+.history-selection button:first-child {
+    border-radius: 20px 0 0 20px;
+    border-right: none;
+}
+
+.history-selection button:last-child {
+    border-radius: 0 20px 20px 0;
+    border-left: none;
+}
+
+.history-selection button:hover {
+    background-color: var(--primary-color);
+    color: var(--light-text);
+}
+
+.history-selection button.active {
+    background-color: var(--primary-color);
+    color: var(--light-text);
+}
+
+.history-proses {
+    margin: 10px 80px 10px 80px;
+}
+
+.history-proses h1 {
+    font-family: var(--main-font);
+    font-size: var(--font-size-large);
+    font-weight: var(--font-weight-semibold);
+    margin: 20px 10px;
+    color: var(--grey-text);
+}
+
+.history-proses hr {
+    border: 1px solid #D9D9D9;
+    margin-bottom: 20px;
+}
+
+.proses-items {
+    display: flex;
+    gap: 20px;
+    border: 1px solid #D9D9D9;
+    margin: 20px 0 0 0;
+}
+
+.proses-items img {
+    width: 167px;
+    height: 167px;
+    object-fit: contain;
+}
+
+.keranjang-product-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 15px;
+}
+
+.price-action img {
+    width: 30px;
+    height: 30px;
+}
+
+.history-proses-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    margin: 10px 0 10px 0;
+    padding: 0 0 20px 0;
+    border-bottom: 2px solid #D9D9D9;
+}
+
+.proses-action-bottom {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    font-family: var(--main-font);
+    color: var(--grey-text);
+}
+
+.proses-action-bottom button {
+    padding: 10px 20px;
+    color: var(--light-text);
+    background-color: #FA766A;
+    border: none;
+}
+
+.proses-action-bottom span {
+    font-weight: var(--font-weight-semibold);
+}

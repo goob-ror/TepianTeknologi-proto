@@ -1,0 +1,26 @@
+:root {
+    --primary-color: #0B46F9;
+    --secondary-color: #FFFFFF;
+    --tertiary-color: #7D7D7D;
+
+    --main-font: 'Montserrat', sans-serif;
+    --secondary-font: 'Istok Web', sans-serif;
+
+    --light-text: #FFFFFF;
+    --dark-text: #000000;
+    --grey-text: #53535B;
+
+    --font-size-small: 12px;
+    --font-size-medium: 16px;
+    --font-size-large: 20px;
+    --font-size-xlarge: 24px;
+    --font-size-xxlarge: 32px;
+
+    --font-weight-light: 300;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    --font-weight-black: 900;
+}

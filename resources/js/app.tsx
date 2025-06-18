@@ -8,7 +8,7 @@ import { initializeTheme } from './hooks/use-appearance';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: (title) => `${title} Tepian Teknologi`,
     resolve: (name) => {
         const fixedName = name.replace(/^Admin\//, 'admin/');
         return resolvePageComponent(`./pages/${fixedName}.tsx`, import.meta.glob('./pages/**/*.tsx'));

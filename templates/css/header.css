@@ -1,0 +1,116 @@
+header {
+  background-color: var(--secondary-color);
+  width: 100%;
+}
+
+.header-content {
+  display: grid;
+  grid-template-columns: 820px 1fr;
+  grid-template-rows: repeat(2, 1fr);
+  grid-template-areas:
+    "mh sh1"
+    "mh sh2";
+  gap: 20px;
+  justify-content: center;
+  align-content: center;
+  padding: 20px 0;
+  margin: 0 auto;
+  max-width: 1200px;
+}
+
+.main-header {
+  grid-area: mh;
+  width: 810px;
+  height: 322px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 10px;
+  position: relative;
+}
+
+.main-header img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left;
+}
+
+.carousel-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.carousel-images {
+  display: flex;
+  width: 300%;
+  height: 100%;
+  transition: transform 0.5s ease-in-out;
+}
+
+.carousel-images img {
+  width: calc(100% / 3);
+  height: 100%;
+  object-fit: cover;
+  object-position: left;
+}
+
+.carousel-dots {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background-color: #D9D9D9;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dot.active {
+  background-color: #7D7D7D;
+}
+
+.side-header-top {
+  grid-area: sh1;
+  width: 357.28px;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.side-header-top img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left;
+}
+
+.side-header-bottom {
+  grid-area: sh2;
+  width: 357.28px;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.side-header-bottom img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left;
+} 

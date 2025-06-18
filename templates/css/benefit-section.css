@@ -1,0 +1,113 @@
+.benefit-section {
+    width: 100%;
+    background-color: var(--secondary-color);
+    margin: 0;
+    padding: 20px 0;
+    border-bottom: 1px solid #D9D9D9;
+}
+
+.benefit-content {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    width: auto;
+    height: auto;
+    font-family: var(--main-font);
+    font-size: var(--font-size-medium);
+    font-weight: var(--font-size-regular);
+    margin: 0 auto;
+    padding: 0 100px;
+    gap: 10px;
+}
+
+.benefit-diskon,
+.benefit-ongkir,
+.benefit-services,
+.benefit-offers,
+.benefit-payment {
+    text-align: center;
+    flex: 1;
+}
+
+.benefit-ongkir,
+.benefit-services,
+.benefit-offers,
+.benefit-payment {
+    border-left: 2px solid #D9D9D9;
+
+}
+
+.benefit-diskon h1,
+.benefit-ongkir h1,
+.benefit-services h1,
+.benefit-offers h1,
+.benefit-payment h1 {
+    font-size: var(--font-size-xlarge);
+    font-weight: var(--font-weight-semibold);
+    color: var(--grey-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+    height: 50px;
+}
+
+.benefit-diskon h1 span,
+.benefit-payment h1 span {
+    color: var(--primary-color);
+    font-weight: var(--font-weight-bold);
+}
+
+.benefit-ongkir h1 span img,
+.benefit-services h1 span img,
+.benefit-offers h1 span img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.benefit-ongkir::before,
+.benefit-services::before,
+.benefit-offers::before,
+.benefit-payment::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 50px;
+    width: 2px;
+}
+
+@media screen and (max-width: 992px) {
+    .benefit-content {
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 0 50px;
+    }
+
+    .benefit-ongkir::before,
+    .benefit-services::before,
+    .benefit-offers::before,
+    .benefit-payment::before {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .benefit-content {
+        flex-direction: column;
+        text-align: center;
+        padding: 0 20px;
+    }
+
+    .benefit-diskon h1,
+    .benefit-ongkir h1,
+    .benefit-services h1,
+    .benefit-offers h1,
+    .benefit-payment h1 {
+        justify-content: center;
+    }
+}

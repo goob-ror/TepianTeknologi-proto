@@ -1,0 +1,115 @@
+@import url('root.css');
+
+.filter-checkbox {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.filter-header h3 {
+    font-family: var(--main-font);
+    font-size: var(--font-size-medium);
+    font-weight: var(--font-weight-semibold);
+    color: var(--grey-text);
+    margin: 0;
+}
+
+.dropdown-icon img {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+
+.filter-checkbox.active .dropdown-icon img {
+    transform: rotate(180deg);
+}
+
+.filter-options {
+    display: none;
+    padding: 10px 0;
+}
+
+.filter-checkbox.active .filter-options {
+    display: block;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.checkbox-item:last-child {
+    margin-bottom: 0;
+}
+
+.checkbox-item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--primary-color);
+    border-radius: 4px;
+    margin-right: 10px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.checkbox-item input[type="checkbox"]:checked {
+    background-color: var(--primary-color);
+}
+
+.checkbox-item input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-item label {
+    font-family: var(--main-font);
+    font-size: var(--font-size-small);
+    color: var(--grey-text);
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-item:hover label {
+    color: var(--primary-color);
+}
+
+@media screen and (max-width: 768px) {
+    .filter-checkbox {
+        margin-bottom: 15px;
+    }
+
+    .filter-header h3 {
+        font-size: var(--font-size-small);
+    }
+
+    .checkbox-item {
+        margin-bottom: 10px;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+    }
+
+    .checkbox-item label {
+        font-size: var(--font-size-xsmall);
+    }
+} 

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tepian Teknologi - Home</title>
+    <link rel="stylesheet" href="globals.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="top-bar">
+        <p class="contact-info">Call Us 0541 7802095 | +62-851-7163-9082</p>
+        <p class="contact-info">Email iconplus@gmail.com</p>
+        <a href="#" class="login-signup">Login/Sign Up</a>
+      </div>
+      <nav>
+        <img src="img/desain-tanpa-judul-20-1.png" alt="Logo" class="logo" />
+        <ul>
+          <li><a href="#" class="active">Home</a></li>
+          <li><a href="#">Product</a></li>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+        <form class="search-form">
+          <input type="search" placeholder="Search Product" />
+          <button type="submit"><img src="img/search.svg" alt="Search" /></button>
+        </form>
+        <div class="user-actions">
+          <img src="img/desain-tanpa-judul-32-1.png" alt="Notifications" class="icon" />
+          <img src="img/desain-tanpa-judul-22-1.png" alt="Cart" class="icon" />
+          <img src="img/desain-tanpa-judul-21-1.png" alt="User" class="icon" />
+        </div>
+      </nav>
+    </header>
+    <main>
+      <section class="hero">
+        <img src="img/image-3.png" alt="Hero Image" class="hero-image" />
+        <div class="hero-carousel">
+          <img src="img/image-2.png" alt="Carousel Image 1" />
+          <img src="img/image-5.png" alt="Carousel Image 2" />
+          <div class="carousel-indicators">
+            <span class="indicator"></span>
+            <span class="indicator"></span>
+            <span class="indicator active"></span>
+          </div>
+        </div>
+      </section>
+      <section class="featured-products">
+        <h2>Produk Terlaris</h2>
+        <div class="category-products">
+          <h3>Terlaris di Kategori OLT</h3>
+          <div class="product">
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+            <a href="#" class="view-more">Lihat</a>
+          </div>
+        </div>
+        <div class="category-products">
+          <h3>Terlaris di Kategori ONT</h3>
+          <div class="product">
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+            <a href="#" class="view-more">Lihat</a>
+          </div>
+        </div>
+        <div class="product-grid">
+          <div class="product">
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+          </div>
+        </div>
+        <a href="#" class="view-all">Lihat Selengkapnya &gt;</a>
+      </section>
+      <section class="special-discount">
+        <h2>Spesial <span>DISKON!</span></h2>
+        <div class="discount-products">
+          <div class="product">
+            <div class="discount-badge">30%</div>
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="original-price">Rp. 999.999</p>
+            <p class="discounted-price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <div class="discount-badge">30%</div>
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="original-price">Rp. 999.999</p>
+            <p class="discounted-price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <div class="discount-badge">30%</div>
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="original-price">Rp. 999.999</p>
+            <p class="discounted-price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <div class="discount-badge">30%</div>
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="original-price">Rp. 999.999</p>
+            <p class="discounted-price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <div class="discount-badge">30%</div>
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="original-price">Rp. 999.999</p>
+            <p class="discounted-price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <div class="discount-badge">30%</div>
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="original-price">Rp. 999.999</p>
+            <p class="discounted-price">Rp. 999.999</p>
+          </div>
+        </div>
+        <a href="#" class="view-all">Lihat Selengkapnya &gt;</a>
+      </section>
+      <section class="new-products">
+        <h2>Produk Terbaru</h2>
+        <div class="category-products">
+          <h3>Terbaru di Kategori OLT</h3>
+          <div class="product">
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+            <a href="#" class="view-more">Lihat</a>
+          </div>
+        </div>
+        <div class="category-products">
+          <h3>Terbaru di Kategori ONT</h3>
+          <div class="product">
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+            <a href="#" class="view-more">Lihat</a>
+          </div>
+        </div>
+        <div class="product-grid">
+          <div class="product">
+            <div class="new-badge">new</div>
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <div class="new-badge">new</div>
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <div class="new-badge">new</div>
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <div class="new-badge">new</div>
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <div class="new-badge">new</div>
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+          </div>
+          <div class="product">
+            <div class="new-badge">new</div>
+            <img src="img/placeholder.jpg" alt="Product Image" class="product-image" />
+            <h4>Nama Product</h4>
+            <p class="price">Rp. 999.999</p>
+          </div>
+        </div>
+        <a href="#" class="view-all">Lihat Selengkapnya &gt;</a>
+      </section>
+      <section class="cta">
+        <h2>Hubungkan dengan <span>Admin</span> untuk Produk yang Anda Cari!</h2>
+        <a href="#" class="cta-button">
+          <img src="img/desain-tanpa-judul-24-1.png" alt="Chat Icon" class="chat-icon" />
+          Hubungkan Sekarang
+        </a>
+      </section>
+      <section class="partners">
+        <h2>Partner</h2>
+        <div class="partner-logos">
+          <img src="img/image-8.png" alt="Partner Logos" />
+        </div>
+      </section>
+    </main>
+    <footer>
+      <div class="footer-content">
+        <div class="company-info">
+          <h3>TEPIAN TEKNOLOGI</h3>
+          <p>
+            Adalah website yang menjual peralatan jaringan, komputer dan peralatan teknologi lainnya. Kami juga
+            bekerjasama dengan beberapa brand ternama seperti ruijie, mikrotik, starlink dll, yang merupakan teknologi
+            yang sangat membantu untuk era saat ini. kami juga menyediakan peralatan terlengkap dan terjangkau, serta
+            memberikan yang terbaik dari segi pelayanan maupun garansi. Tepian Teknologi berlokasi di Samarinda,
+            Kalimantan Timur, Indonesia.
+          </p>
+        </div>
+        <div class="quick-links">
+          <h3>QUICK</h3>
+          <ul>
+            <li>Kontak</li>
+            <li>Lokasi</li>
+          </ul>
+        </div>
+        <div class="group-links">
+          <h3>GROUP</h3>
+          <ul>
+            <li>Lintasmaya</li>
+            <li>Tepian Teknologi</li>
+            <li>BackSlashCoffee</li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>&copy; 2025 Tepian Teknologi</p>
+      </div>
+    </footer>
+  </body>
+</html>
