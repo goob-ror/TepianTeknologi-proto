@@ -403,6 +403,104 @@
     color: var(--light-text) !important;
 }
 
+/* Card styling for admin pages */
+.admin-page [data-slot="card"],
+.admin-page .bg-card {
+    background-color: var(--sidebar) !important;
+    border-color: var(--sidebar-border) !important;
+    color: var(--light-text) !important;
+}
+
+.admin-page [data-slot="card-header"] {
+    background-color: transparent !important;
+    border-bottom-color: var(--sidebar-border) !important;
+}
+
+.admin-page [data-slot="card-content"] {
+    background-color: transparent !important;
+}
+
+.admin-page [data-slot="card-title"],
+.admin-page .text-card-foreground {
+    color: var(--light-text) !important;
+}
+
+/* Override CSS custom properties for admin pages */
+.admin-page {
+    --card: var(--sidebar) !important;
+    --card-foreground: var(--light-text) !important;
+    --muted: var(--sidebar-accent) !important;
+    --muted-foreground: rgba(255, 255, 255, 0.7) !important;
+    --border: var(--sidebar-border) !important;
+    --input: var(--sidebar-accent) !important;
+}
+
+/* Input styling for admin pages */
+.admin-page input[type="text"],
+.admin-page input[type="email"],
+.admin-page input[type="password"],
+.admin-page textarea,
+.admin-page select {
+    background-color: var(--sidebar-accent) !important;
+    border-color: var(--sidebar-border) !important;
+    color: var(--light-text) !important;
+}
+
+.admin-page input[type="text"]:focus,
+.admin-page input[type="email"]:focus,
+.admin-page input[type="password"]:focus,
+.admin-page textarea:focus,
+.admin-page select:focus {
+    border-color: var(--admin-blue) !important;
+    box-shadow: 0 0 0 1px var(--admin-blue) !important;
+}
+
+.admin-page input[type="text"]::placeholder,
+.admin-page input[type="email"]::placeholder,
+.admin-page input[type="password"]::placeholder,
+.admin-page textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Button styling for admin pages */
+.admin-page button {
+    color: var(--light-text) !important;
+}
+
+.admin-page button:hover {
+    background-color: var(--sidebar-accent) !important;
+}
+
+.admin-page button[data-variant="outline"] {
+    background-color: transparent !important;
+    border-color: var(--sidebar-border) !important;
+    color: var(--light-text) !important;
+}
+
+.admin-page button[data-variant="outline"]:hover {
+    background-color: var(--sidebar-accent) !important;
+    border-color: var(--admin-blue) !important;
+}
+
+.admin-page button[data-variant="default"] {
+    background-color: var(--admin-blue) !important;
+    color: white !important;
+}
+
+.admin-page button[data-variant="default"]:hover {
+    background-color: var(--admin-blue) !important;
+    opacity: 0.9 !important;
+}
+
+/* Link styling for admin pages */
+.admin-page a {
+    color: var(--light-text) !important;
+}
+
+.admin-page a:hover {
+    color: var(--admin-blue) !important;
+}
+
 @layer components {
   select option {
     background-color: white;

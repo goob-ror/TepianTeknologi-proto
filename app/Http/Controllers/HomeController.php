@@ -481,4 +481,37 @@ class HomeController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Search products for navigation bar autocomplete.
+     */
+    public function searchProducts(Request $request)
+    {
+        $search = $request->get('q', '');
+
+        if (strlen($search) < 2) {
+            return response()->json([]);
+        }
+
+        $products = Product::with(['category', 'brand'])
+            ->active()
+            ->inStock()
+            ->where('nama_produk', 'like', '%' . $search . '%')
+            ->limit(8)
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'nama_produk' => $product->nama_produk,
+                    'harga' => $product->harga,
+                    'harga_diskon' => $product->harga_diskon,
+                    'is_diskon' => $product->is_diskon,
+                    'gambar' => $product->gambar,
+                    'category' => $product->category ? $product->category->nama_kategori : null,
+                    'brand' => $product->brand ? $product->brand->nama_brand : null,
+                ];
+            });
+
+        return response()->json($products);
+    }
 }

@@ -17,7 +17,11 @@ class PasswordController extends Controller
      */
     public function edit(): Response
     {
-        return Inertia::render('settings/password');
+        // Check if this is an admin route
+        $isAdminRoute = request()->route()->getName() === 'admin.password.edit';
+        $page = $isAdminRoute ? 'admin/settings/password' : 'settings/password';
+
+        return Inertia::render($page);
     }
 
     /**

@@ -15,6 +15,9 @@ Route::get('/katalog', [HomeController::class, 'katalog'])->name('katalog');
 
 Route::get('/detail-produk/{id}', [HomeController::class, 'detailProduk'])->name('detail-produk');
 
+// API route for product search
+Route::get('/api/products/search', [HomeController::class, 'searchProducts'])->name('api.products.search');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/history', [HomeController::class, 'history'])->name('history');
     Route::get('/checkout', [HomeController::class, 'checkout'])->name('checkout');

@@ -27,7 +27,7 @@ export class CartStorage {
    */
   static getItems(userId?: number): CartData {
     if (typeof window === 'undefined') return {};
-    
+
     try {
       const key = this.getStorageKey(userId);
       const stored = localStorage.getItem(key);
@@ -43,7 +43,7 @@ export class CartStorage {
    */
   static setItems(cartData: CartData, userId?: number): void {
     if (typeof window === 'undefined') return;
-    
+
     try {
       const key = this.getStorageKey(userId);
       localStorage.setItem(key, JSON.stringify(cartData));
@@ -103,11 +103,28 @@ export class CartStorage {
   }
 
   /**
+   * Remove multiple items from cart by product IDs
+   * Used after successful checkout to remove purchased items from localStorage
+   */
+  static removeItems(productIds: number[], userId?: number): void {
+    const cart = this.getItems(userId);
+
+    productIds.forEach(productId => {
+      const key = productId.toString();
+      if (cart[key]) {
+        delete cart[key];
+      }
+    });
+
+    this.setItems(cart, userId);
+  }
+
+  /**
    * Clear all cart items
    */
   static clear(userId?: number): void {
     if (typeof window === 'undefined') return;
-    
+
     try {
       const key = this.getStorageKey(userId);
       localStorage.removeItem(key);
@@ -130,8 +147,8 @@ export class CartStorage {
   static getTotalPrice(userId?: number): number {
     const cart = this.getItems(userId);
     return Object.values(cart).reduce((total, item) => {
-      const price = item.product.is_diskon && item.product.harga_diskon 
-        ? item.product.harga_diskon 
+      const price = item.product.is_diskon && item.product.harga_diskon
+        ? item.product.harga_diskon
         : item.product.harga;
       return total + (price * item.quantity);
     }, 0);
@@ -183,7 +200,7 @@ export class CartStorage {
 
     // Save merged cart to user storage
     this.setItems(userCart, userId);
-    
+
     // Clear guest cart
     this.clear();
   }
@@ -196,7 +213,7 @@ export class CartStorage {
 
     try {
       const cartData = this.getItems(userId);
-      
+
       await fetch('/cart/sync', {
         method: 'POST',
         headers: {

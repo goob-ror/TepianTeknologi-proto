@@ -133,6 +133,36 @@ export function useCart() {
     }
   }, [userId]);
 
+  // Remove checked items from cart (after successful checkout)
+  const removeCheckedItems = useCallback(async (checkedItems: CartItem[]) => {
+    try {
+      // Get product IDs of checked items
+      const productIds = checkedItems.map(item => parseInt(item.id));
+
+      // Remove from localStorage
+      CartStorage.removeItems(productIds, userId);
+
+      // Update state
+      const items = CartStorage.getFormattedItems(userId);
+      const count = CartStorage.getTotalItems(userId);
+      const price = CartStorage.getTotalPrice(userId);
+
+      setCartItems(items);
+      setTotalItems(count);
+      setTotalPrice(price);
+
+      // Sync with server for authenticated users
+      if (userId) {
+        await CartStorage.syncWithServer(userId);
+      }
+
+      return { success: true, message: 'Item yang dibeli berhasil dihapus dari keranjang' };
+    } catch (error) {
+      console.error('Error removing checked items:', error);
+      return { success: false, message: 'Gagal menghapus item dari keranjang' };
+    }
+  }, [userId]);
+
   // Clear cart
   const clearCart = useCallback(async () => {
     try {
@@ -181,6 +211,7 @@ export function useCart() {
     addToCart,
     updateCartItem,
     removeFromCart,
+    removeCheckedItems,
     clearCart,
     updateItemChecked,
     updateItemQuantity,

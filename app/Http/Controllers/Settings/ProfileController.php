@@ -18,7 +18,11 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('settings/profile', [
+        // Check if this is an admin route
+        $isAdminRoute = $request->route()->getName() === 'admin.profile.edit';
+        $page = $isAdminRoute ? 'admin/settings/profile' : 'settings/profile';
+
+        return Inertia::render($page, [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
         ]);
@@ -37,7 +41,11 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return to_route('profile.edit');
+        // Redirect to appropriate route based on current route
+        $routeName = request()->route()->getName();
+        $redirectRoute = str_contains($routeName, 'admin.') ? 'admin.profile.edit' : 'profile.edit';
+
+        return to_route($redirectRoute);
     }
 
     /**

@@ -2,7 +2,7 @@ import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, Sideba
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function NavMain({ items = [] }: { items: NavItem[] }) {
     const page = usePage();
@@ -42,6 +42,30 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
             [title]: !prev[title]
         }));
     };
+
+    // Auto-open dropdowns when current page matches a dropdown item
+    useEffect(() => {
+        const newOpenDropdowns: Record<string, boolean> = {};
+
+        items.forEach(item => {
+            if (item.dropdown) {
+                const isCurrentPageInDropdown = item.dropdown.some(subItem => subItem.href === page.url);
+                // Special case for Settings - open if on any admin settings page
+                const isSettingsPage = item.title === 'Settings' && page.url.startsWith('/admin/settings');
+
+                if (isCurrentPageInDropdown || isSettingsPage) {
+                    newOpenDropdowns[item.title] = true;
+                }
+            }
+        });
+
+        if (Object.keys(newOpenDropdowns).length > 0) {
+            setOpenDropdowns(prev => ({
+                ...prev,
+                ...newOpenDropdowns
+            }));
+        }
+    }, [page.url, items]);
 
     // Group items by section based on comments in the array
     const groupItems = () => {
@@ -86,7 +110,11 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                     {item.dropdown ? (
                                         <>
                                             <SidebarMenuButton
-                                                isActive={item.href === page.url || (item.dropdown && item.dropdown.some(subItem => subItem.href === page.url))}
+                                                isActive={
+                                                    item.href === page.url ||
+                                                    (item.dropdown && item.dropdown.some(subItem => subItem.href === page.url)) ||
+                                                    (item.title === 'Settings' && page.url.startsWith('/admin/settings'))
+                                                }
                                                 tooltip={{ children: item.title }}
                                                 onClick={() => toggleDropdown(item.title)}
                                                 className="justify-between hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 transition-all duration-200"

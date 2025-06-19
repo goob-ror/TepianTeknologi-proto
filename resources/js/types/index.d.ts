@@ -43,6 +43,7 @@ export interface User {
     name?: string; // Made optional for safety, populated by accessor
     nama_lengkap?: string; // Database field
     email: string;
+    no_hp?: string; // Phone number field
     avatar?: string;
     role: 'admin' | 'user'; // User role from enum
     email_verified_at: string | null;

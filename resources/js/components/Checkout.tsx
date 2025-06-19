@@ -4,6 +4,8 @@ import BenefitSection from './BenefitSection';
 import Swal from 'sweetalert2';
 import { router } from '@inertiajs/react';
 import { useCart } from '../hooks/useCart';
+import { usePage } from '@inertiajs/react';
+import type { SharedData } from '../types';
 
 interface CartItem {
   id: string;
@@ -609,9 +611,13 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
       font-size: var(--font-size-medium) !important;
     }
   `;
-  const { cartItems, updateItemChecked, updateItemQuantity, updateCartItem } = useCart();
+  const { cartItems, updateItemChecked, updateItemQuantity, updateCartItem, removeCheckedItems } = useCart();
   const [categoryCheckedStates, setCategoryCheckedStates] = useState<{[key: string]: boolean}>({});
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
+
+  // Get user information from session
+  const { props } = usePage<SharedData>();
+  const user = props.auth?.user;
 
   // Get unique categories from cart items - memoized to prevent infinite re-renders
   const categories = useMemo(() => {
@@ -666,6 +672,10 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
       return;
     }
 
+    // Get user data for pre-population
+    const userName = user?.nama_lengkap || user?.name || '';
+    const userPhone = user?.no_hp || '';
+
     // Show order form
     const { value: formValues } = await Swal.fire({
       title: 'Informasi Pengiriman',
@@ -683,9 +693,10 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
               font-weight: var(--font-weight-semibold);
               color: var(--grey-text);
               font-size: var(--font-size-medium);
-            ">Nama Penerima *</label>
+            ">Nama Penerima * ${userName ? '<span style="color: var(--primary-color); font-size: 12px;">(dari akun Anda)</span>' : ''}</label>
             <input
               id="nama_penerima"
+              value="${userName}"
               placeholder="Masukkan nama penerima"
               style="
                 width: 100%;
@@ -694,7 +705,7 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
                 border-radius: 8px;
                 font-size: var(--font-size-medium);
                 font-family: var(--main-font);
-                background: white;
+                background: ${userName ? '#f9fafb' : 'white'};
                 color: var(--grey-text);
                 transition: border-color 0.3s ease;
                 box-sizing: border-box;
@@ -741,9 +752,10 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
               font-weight: var(--font-weight-semibold);
               color: var(--grey-text);
               font-size: var(--font-size-medium);
-            ">No. HP Penerima</label>
+            ">No. HP Penerima ${userPhone ? '<span style="color: var(--primary-color); font-size: 12px;">(dari akun Anda)</span>' : ''}</label>
             <input
               id="no_hp_penerima"
+              value="${userPhone}"
               placeholder="Masukkan nomor HP"
               style="
                 width: 100%;
@@ -752,7 +764,7 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
                 border-radius: 8px;
                 font-size: var(--font-size-medium);
                 font-family: var(--main-font);
-                background: white;
+                background: ${userPhone ? '#f9fafb' : 'white'};
                 color: var(--grey-text);
                 transition: border-color 0.3s ease;
                 box-sizing: border-box;
@@ -939,6 +951,14 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
       const whatsappUrl = `https://wa.me/62895360022327?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
 
+      // Remove checked items from cart
+      try {
+        await removeCheckedItems(selectedItems);
+      } catch (error) {
+        console.error('Error removing items from cart:', error);
+        // Continue with success message even if cart cleanup fails
+      }
+
       // Show success message
       Swal.fire({
         title: 'Pesanan Berhasil Dibuat!',
@@ -946,6 +966,7 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
           <div style="text-align: center; font-family: var(--main-font);">
             <p style="color: var(--grey-text); margin: 10px 0;">ID Pesanan: #${data.order_id}</p>
             <p style="color: var(--grey-text); margin: 10px 0;">Pesanan telah disimpan dan WhatsApp akan terbuka untuk konfirmasi</p>
+            <p style="color: var(--primary-color); margin: 10px 0; font-size: 14px;">Item yang dibeli telah dihapus dari keranjang</p>
           </div>
         `,
         icon: 'success',
@@ -960,10 +981,8 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
       }).then((result) => {
         if (result.isConfirmed) {
           router.visit('/history');
-        } else {
-          // Refresh the page to update cart
-          window.location.reload();
         }
+        // No need to reload page anymore since cart is already updated
       });
 
     } catch (error) {
