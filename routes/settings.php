@@ -30,7 +30,5 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('admin/settings/password', [PasswordController::class, 'edit'])->name('admin.password.edit');
     Route::put('admin/settings/password', [PasswordController::class, 'update'])->name('admin.password.update');
 
-    Route::get('admin/settings/appearance', function () {
-        return Inertia::render('admin/settings/appearance');
-    })->name('admin.appearance');
+    // Note: Admin appearance route removed - admin pages are always in dark mode
 });

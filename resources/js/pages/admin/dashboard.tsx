@@ -5,8 +5,7 @@ import { LowStockProducts } from '@/components/admin/dashboard/LowStockProducts'
 import AppLayout from '@/layouts/admin-app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import { Users, Package, ShoppingCart, TrendingUp } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Users, Package, ShoppingCart, TrendingUp, Tag, Store } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -15,129 +14,131 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// Sample data - in a real app, this would come from the backend
-const sampleProducts = [
-    {
-        id: 1,
-        nama_produk: 'Arduino Uno',
-        brand_produk: 'Arduino',
-        harga_produk: 150000,
-        stock_produk: 25,
-        created_at: '2025-04-01T00:00:00.000Z',
-    },
-    {
-        id: 2,
-        nama_produk: 'Raspberry Pi 4',
-        brand_produk: 'Raspberry Pi',
-        harga_produk: 850000,
-        stock_produk: 8,
-        created_at: '2025-04-05T00:00:00.000Z',
-    },
-    {
-        id: 3,
-        nama_produk: 'ESP32 Development Board',
-        brand_produk: 'Espressif',
-        harga_produk: 75000,
-        stock_produk: 15,
-        created_at: '2025-04-10T00:00:00.000Z',
-    },
-    {
-        id: 4,
-        nama_produk: 'Servo Motor SG90',
-        brand_produk: 'Tower Pro',
-        harga_produk: 15000,
-        stock_produk: 5,
-        created_at: '2025-04-15T00:00:00.000Z',
-    },
-    {
-        id: 5,
-        nama_produk: 'Breadboard 830 Points',
-        brand_produk: 'Generic',
-        harga_produk: 25000,
-        stock_produk: 30,
-        created_at: '2025-04-20T00:00:00.000Z',
-    },
-];
+interface Category {
+    id: number;
+    nama_kategori: string;
+}
 
-const salesData = [
-    { name: 'Jan', value: 1200 },
-    { name: 'Feb', value: 1900 },
-    { name: 'Mar', value: 1500 },
-    { name: 'Apr', value: 2400 },
-    { name: 'May', value: 2100 },
-    { name: 'Jun', value: 3000 },
-];
+interface Brand {
+    id: number;
+    nama_brand: string;
+}
 
 interface Product {
     id: number;
     nama_produk: string;
-    brand_produk: string;
-    harga_produk: number;
-    stock_produk: number;
+    deskripsi: string;
+    harga: string;
+    stok: number;
+    category: Category;
+    brand: Brand;
     created_at: string;
 }
 
-export default function Dashboard() {
-    const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
-    const [recentProducts, setRecentProducts] = useState<Product[]>([]);
+interface Stats {
+    totalUsers: number;
+    totalProducts: number;
+    totalCategories: number;
+    totalBrands: number;
+}
 
-    useEffect(() => {
-        // Filter products with stock less than 10
-        setLowStockProducts(sampleProducts.filter(product => product.stock_produk < 10));
+interface SalesData {
+    month: string;
+    sales: number;
+}
 
-        // Get the 5 most recent products
-        setRecentProducts([...sampleProducts].sort((a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        ).slice(0, 5));
-    }, []);
+interface Props {
+    stats: Stats;
+    lowStockProducts: Product[];
+    recentProducts: Product[];
+    salesData: SalesData[];
+}
+
+export default function Dashboard({ stats, lowStockProducts, recentProducts, salesData }: Props) {
+    // Transform salesData for chart component
+    const chartData = salesData && Array.isArray(salesData) ? salesData.map(item => ({
+        name: item.month,
+        value: item.sales / 1000000 // Convert to millions for better display
+    })) : [];
+
+    // Transform products for legacy components
+    const transformedLowStock = lowStockProducts && Array.isArray(lowStockProducts) ? lowStockProducts.map(product => ({
+        id: product.id,
+        nama_produk: product.nama_produk,
+        brand_produk: product.brand?.nama_brand || 'Unknown',
+        harga_produk: parseFloat(product.harga),
+        stock_produk: product.stok,
+        created_at: product.created_at,
+    })) : [];
+
+    const transformedRecent = recentProducts && Array.isArray(recentProducts) ? recentProducts.map(product => ({
+        id: product.id,
+        nama_produk: product.nama_produk,
+        brand_produk: product.brand?.nama_brand || 'Unknown',
+        harga_produk: parseFloat(product.harga),
+        stock_produk: product.stok,
+        created_at: product.created_at,
+    })) : [];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+                <div className="flex items-center gap-3 mb-2">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                        Admin Dashboard
+                    </h1>
+                    <div className="flex gap-2">
+                        <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></div>
+                        <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                        <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                    </div>
+                </div>
 
                 {/* Stats Row */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <StatCard
                         title="Total Users"
-                        value="120"
+                        value={stats.totalUsers.toString()}
                         icon={Users}
                         trend={{ value: 12, isPositive: true }}
+                        colorTheme="blue"
                     />
                     <StatCard
                         title="Total Products"
-                        value="45"
+                        value={stats.totalProducts.toString()}
                         icon={Package}
                         trend={{ value: 8, isPositive: true }}
+                        colorTheme="green"
                     />
                     <StatCard
-                        title="Monthly Sales"
-                        value="Rp 24,500,000"
-                        icon={ShoppingCart}
-                        trend={{ value: 5, isPositive: true }}
+                        title="Categories"
+                        value={stats.totalCategories.toString()}
+                        icon={Tag}
+                        trend={{ value: 2, isPositive: true }}
+                        colorTheme="yellow"
                     />
                     <StatCard
-                        title="Revenue Growth"
-                        value="18%"
-                        icon={TrendingUp}
-                        description="Year over year growth"
-                        trend={{ value: 3, isPositive: false }}
+                        title="Brands"
+                        value={stats.totalBrands.toString()}
+                        icon={Store}
+                        trend={{ value: 1, isPositive: true }}
+                        colorTheme="purple"
                     />
                 </div>
 
                 {/* Chart and Low Stock Products */}
                 <div className="grid gap-4 md:grid-cols-3">
                     <ProductsChart
-                        data={salesData}
-                        title="Monthly Sales"
+                        data={chartData}
+                        title="Monthly Sales (in Millions IDR)"
                         className="md:col-span-2"
                     />
-                    <LowStockProducts products={lowStockProducts} />
+                    <LowStockProducts products={transformedLowStock} />
                 </div>
 
                 {/* Recent Products Table */}
-                <RecentProductsTable products={recentProducts} />
+                <RecentProductsTable products={transformedRecent} />
             </div>
         </AppLayout>
     );

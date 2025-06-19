@@ -246,6 +246,163 @@
     background-color: var(--secondary-color) !important;
 }
 
+/* Admin-specific colorful styling */
+:root {
+    --admin-blue: #3B82F6;
+    --admin-green: #10B981;
+    --admin-yellow: #F59E0B;
+    --admin-purple: #8B5CF6;
+    --admin-pink: #EC4899;
+    --admin-orange: #F97316;
+    --admin-cyan: #06B6D4;
+    --admin-indigo: #6366F1;
+}
+
+.admin-page {
+    color: var(--light-text) !important;
+}
+
+.admin-page h1,
+.admin-page h2,
+.admin-page h3,
+.admin-page h4,
+.admin-page h5,
+.admin-page h6 {
+    color: var(--light-text) !important;
+}
+
+.admin-page p,
+.admin-page span,
+.admin-page div,
+.admin-page td,
+.admin-page th,
+.admin-page label {
+    color: var(--light-text) !important;
+}
+
+/* Override specific Tailwind classes for admin pages */
+.admin-page .text-muted-foreground {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.admin-page .text-foreground {
+    color: var(--light-text) !important;
+}
+
+.admin-page .text-sm,
+.admin-page .text-xs,
+.admin-page .text-base,
+.admin-page .text-lg,
+.admin-page .text-xl,
+.admin-page .text-2xl {
+    color: var(--light-text) !important;
+}
+
+/* Colorful admin stat cards */
+.admin-stat-card-blue {
+    background: linear-gradient(135deg, var(--admin-blue), #1E40AF) !important;
+    border: 1px solid var(--admin-blue) !important;
+}
+
+.admin-stat-card-green {
+    background: linear-gradient(135deg, var(--admin-green), #059669) !important;
+    border: 1px solid var(--admin-green) !important;
+}
+
+.admin-stat-card-yellow {
+    background: linear-gradient(135deg, var(--admin-yellow), #D97706) !important;
+    border: 1px solid var(--admin-yellow) !important;
+}
+
+.admin-stat-card-purple {
+    background: linear-gradient(135deg, var(--admin-purple), #7C3AED) !important;
+    border: 1px solid var(--admin-purple) !important;
+}
+
+.admin-stat-card-pink {
+    background: linear-gradient(135deg, var(--admin-pink), #DB2777) !important;
+    border: 1px solid var(--admin-pink) !important;
+}
+
+.admin-stat-card-orange {
+    background: linear-gradient(135deg, var(--admin-orange), #EA580C) !important;
+    border: 1px solid var(--admin-orange) !important;
+}
+
+/* Colorful text classes for admin */
+.admin-text-blue {
+    color: var(--admin-blue) !important;
+}
+
+.admin-text-green {
+    color: var(--admin-green) !important;
+}
+
+.admin-text-yellow {
+    color: var(--admin-yellow) !important;
+}
+
+.admin-text-purple {
+    color: var(--admin-purple) !important;
+}
+
+.admin-text-pink {
+    color: var(--admin-pink) !important;
+}
+
+.admin-text-orange {
+    color: var(--admin-orange) !important;
+}
+
+.admin-text-cyan {
+    color: var(--admin-cyan) !important;
+}
+
+.admin-text-indigo {
+    color: var(--admin-indigo) !important;
+}
+
+/* Colorful backgrounds for admin elements */
+.admin-bg-blue {
+    background-color: var(--admin-blue) !important;
+}
+
+.admin-bg-green {
+    background-color: var(--admin-green) !important;
+}
+
+.admin-bg-yellow {
+    background-color: var(--admin-yellow) !important;
+}
+
+.admin-bg-purple {
+    background-color: var(--admin-purple) !important;
+}
+
+/* Keep specific colored text for status indicators */
+.admin-page .text-red-500,
+.admin-page .text-green-500,
+.admin-page .text-blue-500,
+.admin-page .text-yellow-500 {
+    /* Keep these colors for status indicators */
+}
+
+/* Image cropper dialog styling for admin pages */
+.admin-page [data-slot="dialog-content"] {
+    background-color: var(--sidebar) !important;
+    border-color: var(--sidebar-border) !important;
+}
+
+.admin-page [data-slot="dialog-title"],
+.admin-page [data-slot="dialog-content"] h1,
+.admin-page [data-slot="dialog-content"] h2,
+.admin-page [data-slot="dialog-content"] h3,
+.admin-page [data-slot="dialog-content"] p,
+.admin-page [data-slot="dialog-content"] span,
+.admin-page [data-slot="dialog-content"] div {
+    color: var(--light-text) !important;
+}
+
 @layer components {
   select option {
     background-color: white;
@@ -770,4 +927,22 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .h-6\.25 {
     height: 25px;
+}
+
+/* Additional admin background colors */
+.admin-bg-gray {
+    background-color: #6B7280 !important;
+}
+
+.admin-bg-gray:hover {
+    background-color: #4B5563 !important;
+}
+
+/* Export dropdown styles */
+.export-dropdown {
+    @apply absolute right-0 top-full mt-1 w-48 bg-background border rounded-lg shadow-lg opacity-0 invisible transition-all duration-200 z-10;
+}
+
+.export-dropdown-trigger:hover .export-dropdown {
+    @apply opacity-100 visible;
 }

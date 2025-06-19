@@ -8,8 +8,15 @@ import BreakContact from '../components/BreakContact';
 import SponsorSection from '../components/SponsorSection';
 import Footer from '../components/Footer';
 import { PageLoader } from '../components/Loader';
+import { Product } from '../types';
 
-export default function Home() {
+interface HomeProps {
+  latestProducts: Product[];
+  popularProducts: Product[];
+  discountProducts: Product[];
+}
+
+export default function Home({ latestProducts, popularProducts, discountProducts }: HomeProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -37,13 +44,13 @@ export default function Home() {
 
         <main>
           {/* Bagian Terlaris */}
-          <ProductSection title="Produk Terlaris" type="terlaris" />
+          <ProductSection title="Produk Terlaris" type="terlaris" products={popularProducts} />
 
           {/* Bagian Diskon */}
-          <ProductSection title="Spesial Diskon" type="diskon" />
+          <ProductSection title="Spesial Diskon" type="diskon" products={discountProducts} />
 
           {/* Bagian Terbaru */}
-          <ProductSection title="Produk Terbaru" type="terbaru" />
+          <ProductSection title="Produk Terbaru" type="terbaru" products={latestProducts} />
 
           {/* Bagian Break Contact */}
           <BreakContact />

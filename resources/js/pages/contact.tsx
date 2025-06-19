@@ -7,6 +7,12 @@ import GoogleMap from '../components/GoogleMap';
 export default function Contact() {
   const [isLoading, setIsLoading] = useState(true);
 
+  const handleWhatsAppContact = () => {
+    const message = `Halo, saya ingin menghubungi admin untuk informasi produk`;
+    const whatsappUrl = `https://wa.me/62895360022327?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   useEffect(() => {
     // Simulate page loading
     const timer = setTimeout(() => {
@@ -142,7 +148,7 @@ export default function Contact() {
                   </span>
                   <div>
                     <strong>Contact</strong><br />
-                    0541 7802095 | +62-851-7163-9082
+                    0541 7802095 | +62-895-3600-22327
                   </div>
                 </div>
 
@@ -314,6 +320,7 @@ export default function Contact() {
                 </button>
 
                 <button
+                  onClick={handleWhatsAppContact}
                   style={{
                     padding: '7px 16px',
                     fontSize: '0.95rem',

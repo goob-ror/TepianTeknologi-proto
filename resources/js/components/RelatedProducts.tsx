@@ -1,39 +1,20 @@
 import { useState } from 'react';
+import { Product } from '../types';
+import { getProductImage, isNewProduct, formatPrice, getEffectivePrice, getDiscountPercentage } from '../utils/productUtils';
 
-interface RelatedProduct {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  isNew?: boolean;
-  image: string;
+interface RelatedProductsProps {
+  products: Product[];
 }
 
-export default function RelatedProducts() {
+export default function RelatedProducts({ products }: RelatedProductsProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 5;
 
-  const relatedProducts: RelatedProduct[] = [
-    { id: 1, name: 'Nama Product', price: 123456, originalPrice: 234567, discount: 30, image: '/icons/product.png' },
-    { id: 2, name: 'Nama Product', price: 123456, image: '/icons/product.png' },
-    { id: 3, name: 'Nama Product', price: 123456, isNew: true, image: '/icons/product.png' },
-    { id: 4, name: 'Nama Product', price: 150000, originalPrice: 200000, discount: 25, image: '/icons/product.png' },
-    { id: 5, name: 'Nama Product', price: 450000, isNew: true, image: '/icons/product.png' },
-    { id: 6, name: 'Nama Product', price: 300000, originalPrice: 500000, discount: 40, image: '/icons/product.png' },
-    { id: 7, name: 'Nama Product', price: 750000, isNew: true, image: '/icons/product.png' },
-    { id: 8, name: 'Nama Product', price: 325000, image: '/icons/product.png' }
-  ];
-
-  const formatPrice = (price: number) => {
-    return `Rp. ${price.toLocaleString('id-ID')}`;
-  };
-
   // Calculate pagination
-  const totalPages = Math.ceil(relatedProducts.length / productsPerPage);
+  const totalPages = Math.ceil(products.length / productsPerPage);
   const startIndex = (currentPage - 1) * productsPerPage;
   const endIndex = startIndex + productsPerPage;
-  const currentProducts = relatedProducts.slice(startIndex, endIndex);
+  const currentProducts = products.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -75,138 +56,144 @@ export default function RelatedProducts() {
             padding: '10px 0'
           }}
         >
-          {currentProducts.map((product) => (
-            <div
-              key={product.id}
-              className="products"
-              style={{
-                backgroundColor: 'var(--secondary-color)',
-                textAlign: 'left',
-                border: '#D9D9D9 solid 1px',
-                width: '180px',
-                margin: '0 auto',
-                display: 'flex',
-                flexDirection: 'column',
-                position: 'relative'
-              }}
-            >
-              <a
-                href=""
+          {currentProducts.map((product) => {
+            const discountPercentage = getDiscountPercentage(product);
+            const effectivePrice = getEffectivePrice(product);
+            const isNew = isNewProduct(product);
+
+            return (
+              <div
+                key={product.id}
+                className="products"
                 style={{
-                  textDecoration: 'none',
-                  color: 'inherit',
+                  backgroundColor: 'var(--secondary-color)',
+                  textAlign: 'left',
+                  border: '#D9D9D9 solid 1px',
+                  width: '180px',
+                  margin: '0 auto',
                   display: 'flex',
                   flexDirection: 'column',
-                  width: '100%',
-                  height: '100%'
+                  position: 'relative'
                 }}
               >
-                <img
-                  src={product.image}
-                  alt={product.name}
+                <a
+                  href={`/detail-produk/${product.id}`}
                   style={{
-                    width: '100%',
-                    margin: '0 0 10px 0'
-                  }}
-                />
-
-                {product.discount && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '0',
-                      left: '0',
-                      backgroundColor: 'var(--primary-color)',
-                      color: 'var(--light-text)',
-                      padding: '1px 1px'
-                    }}
-                  >
-                    <h2 style={{
-                      fontSize: '10px',
-                      padding: '2px',
-                      fontWeight: 'var(--font-weight-regular)',
-                      margin: '0'
-                    }}>{product.discount}%</h2>
-                  </div>
-                )}
-
-                <h1
-                  style={{
-                    fontSize: 'var(--font-size-small)',
-                    color: 'var(--grey-text)',
-                    margin: '15px 0 30px 0',
-                    padding: '0 15px 0 15px',
-                    fontWeight: 'var(--font-weight-semibold)',
-                    width: '100%',
-                    textAlign: 'left',
+                    textDecoration: 'none',
+                    color: 'inherit',
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
+                    flexDirection: 'column',
+                    width: '100%',
+                    height: '100%'
                   }}
                 >
-                  {product.name}
-                  {product.isNew && (
+                  <img
+                    src={getProductImage(product)}
+                    alt={product.nama_produk}
+                    style={{
+                      width: '100%',
+                      margin: '0 0 10px 0'
+                    }}
+                  />
+
+                  {discountPercentage > 0 && (
                     <div
-                      className="terbaru-tag"
                       style={{
+                        position: 'absolute',
+                        top: '0',
+                        left: '0',
                         backgroundColor: 'var(--primary-color)',
                         color: 'var(--light-text)',
-                        padding: '4px 6px',
-                        fontSize: '10px',
-                        fontWeight: 'var(--font-weight-regular)',
-                        borderRadius: '4px'
+                        padding: '1px 1px'
                       }}
                     >
-                      NEW
+                      <h2 style={{
+                        fontSize: '10px',
+                        padding: '2px',
+                        fontWeight: 'var(--font-weight-regular)',
+                        margin: '0'
+                      }}>{discountPercentage}%</h2>
                     </div>
                   )}
-                </h1>
 
-                {product.originalPrice && (
-                  <p
-                    className="diskon-price"
+                  <h1
                     style={{
-                      color: '#FA766A',
-                      fontSize: '12px',
-                      textDecoration: 'line-through',
-                      margin: 0,
-                      padding: '0 10px'
+                      fontSize: 'var(--font-size-small)',
+                      color: 'var(--grey-text)',
+                      margin: '15px 0 30px 0',
+                      padding: '0 15px 0 15px',
+                      fontWeight: 'var(--font-weight-semibold)',
+                      width: '100%',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
                     }}
                   >
-                    {formatPrice(product.originalPrice)}
-                  </p>
-                )}
+                    {product.nama_produk}
+                    {isNew && (
+                      <div
+                        className="terbaru-tag"
+                        style={{
+                          backgroundColor: 'var(--primary-color)',
+                          color: 'var(--light-text)',
+                          padding: '4px 6px',
+                          fontSize: '10px',
+                          fontWeight: 'var(--font-weight-regular)',
+                          borderRadius: '4px'
+                        }}
+                      >
+                        NEW
+                      </div>
+                    )}
+                  </h1>
 
-                <p
-                  style={{
-                    color: 'var(--primary-color)',
-                    fontSize: 'var(--font-size-small)',
-                    fontWeight: 'var(--font-weight-semibold)',
-                    margin: 0,
-                    padding: '0 15px 15px 15px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                    marginTop: 'auto'
-                  }}
-                >
-                  {formatPrice(product.price)}
-                  <span>
-                    <img
-                      src="/icons/shopping-cart.png"
-                      className="price-cart"
+                  {product.is_diskon && product.harga_diskon && (
+                    <p
+                      className="diskon-price"
                       style={{
-                        width: '19.69px',
-                        height: '17px'
+                        color: '#FA766A',
+                        fontSize: '12px',
+                        textDecoration: 'line-through',
+                        margin: 0,
+                        padding: '0 10px'
                       }}
-                      alt="Cart"
-                    />
-                  </span>
-                </p>
-              </a>
-            </div>
-          ))}
+                    >
+                      {formatPrice(parseFloat(product.harga))}
+                    </p>
+                  )}
+
+                  <p
+                    style={{
+                      color: 'var(--primary-color)',
+                      fontSize: 'var(--font-size-small)',
+                      fontWeight: 'var(--font-weight-semibold)',
+                      margin: 0,
+                      padding: '0 15px 15px 15px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      marginTop: 'auto'
+                    }}
+                  >
+                    {formatPrice(effectivePrice)}
+                    <span>
+                      <img
+                        src="/icons/shopping-cart.png"
+                        className="price-cart"
+                        style={{
+                          width: '19.69px',
+                          height: '17px'
+                        }}
+                        alt="Cart"
+                      />
+                    </span>
+                  </p>
+                </a>
+              </div>
+            );
+          })}
         </div>
 
         {totalPages > 1 && (

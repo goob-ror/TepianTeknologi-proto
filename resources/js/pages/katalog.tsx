@@ -5,8 +5,35 @@ import BenefitSection from '../components/BenefitSection';
 import FilterSidebar from '../components/FilterSidebar';
 import CatalogSection from '../components/CatalogSection';
 import { PageLoader } from '../components/Loader';
+import { Product, Category, Brand } from '../types';
 
-export default function Katalog() {
+interface KatalogProps {
+  products: {
+    data: Product[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{
+      url: string | null;
+      label: string;
+      active: boolean;
+    }>;
+  };
+  categories: Category[];
+  brands: Brand[];
+  filters: {
+    category_id?: string;
+    brand_id?: string;
+    price_min?: string;
+    price_max?: string;
+    search?: string;
+    sort_by?: string;
+    sort_order?: string;
+  };
+}
+
+export default function Katalog({ products, categories, brands, filters }: KatalogProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -38,8 +65,15 @@ export default function Katalog() {
             margin: '80px 60px 20px 60px'
           }}
         >
-          <FilterSidebar />
-          <CatalogSection />
+          <FilterSidebar
+            categories={categories}
+            brands={brands}
+            filters={filters}
+          />
+          <CatalogSection
+            products={products}
+            filters={filters}
+          />
         </div>
       </main>
 

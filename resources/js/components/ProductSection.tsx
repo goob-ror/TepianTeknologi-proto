@@ -1,11 +1,19 @@
 
+import { Product } from '../types';
+import { getProductImage, isNewProduct, formatPrice } from '../utils/productUtils';
+import { Link } from '@inertiajs/react';
 
 interface ProductSectionProps {
   title: string;
   type: 'terlaris' | 'diskon' | 'terbaru';
+  products: Product[];
 }
 
-export default function ProductSection({ title, type }: ProductSectionProps) {
+
+
+export default function ProductSection({ title, type, products }: ProductSectionProps) {
+  // Ensure products is always an array
+  const safeProducts = Array.isArray(products) ? products : [];
   const renderDiscountSection = () => (
     <section
       className="diskon"
@@ -61,7 +69,8 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
             margin: '10px 0'
           }} />
         </div>
-        <button
+        <Link
+          href="/katalog"
           style={{
             position: 'absolute',
             right: '0',
@@ -73,11 +82,13 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
             padding: '5px 20px',
             borderRadius: '6px',
             cursor: 'pointer',
-            fontSize: '14px'
+            fontSize: '14px',
+            textDecoration: 'none',
+            display: 'inline-block'
           }}
         >
           Lihat Selengkapnya   &gt;
-        </button>
+        </Link>
       </div>
 
       <div
@@ -110,10 +121,10 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
           gap: '20px'
         }}
       >
-        {[1, 2, 3, 4, 5, 6].map((item) => (
+        {safeProducts.slice(0, 6).map((product, index) => (
           <div
-            key={item}
-            className={`diskon-${item}`}
+            key={product.id}
+            className={`diskon-${index + 1}`}
             style={{
               backgroundColor: 'var(--secondary-color)',
               textAlign: 'left',
@@ -126,7 +137,7 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
             }}
           >
             <a
-              href="#"
+              href={`/detail-produk/${product.id}`}
               style={{
                 textDecoration: 'none',
                 color: 'inherit',
@@ -135,32 +146,36 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
               }}
             >
               <img
-                src="/icons/product.png"
-                alt=""
+                src={getProductImage(product)}
+                alt={product.nama_produk}
                 style={{
                   width: '100%',
                   objectFit: 'contain',
                   margin: '0'
                 }}
               />
-              <div
-                className="diskon-tag"
-                style={{
-                  position: 'absolute',
-                  top: '0',
-                  left: '0',
-                  backgroundColor: 'var(--primary-color)',
-                  color: 'var(--light-text)',
-                  padding: '1px 1px'
-                }}
-              >
-                <h2 style={{
-                  fontSize: '14px',
-                  padding: '2px',
-                  fontWeight: 'var(--font-weight-regular)',
-                  margin: '0'
-                }}>30%</h2>
-              </div>
+              {product.is_diskon && (
+                <div
+                  className="diskon-tag"
+                  style={{
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    backgroundColor: 'var(--primary-color)',
+                    color: 'var(--light-text)',
+                    padding: '1px 1px'
+                  }}
+                >
+                  <h2 style={{
+                    fontSize: '14px',
+                    padding: '2px',
+                    fontWeight: 'var(--font-weight-regular)',
+                    margin: '0'
+                  }}>
+                    {product.diskon_persen || Math.round(((parseFloat(product.harga) - parseFloat(product.harga_diskon || product.harga)) / parseFloat(product.harga)) * 100)}%
+                  </h2>
+                </div>
+              )}
               <h1 style={{
                 fontSize: 'var(--font-size-medium)',
                 color: 'var(--grey-text)',
@@ -169,17 +184,19 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
                 fontWeight: 'var(--font-weight-semibold)',
                 width: '100%',
                 textAlign: 'left'
-              }}>Nama Product</h1>
-              <p
-                className="diskon-price"
-                style={{
-                  color: '#FA766A',
-                  fontSize: '14px',
-                  textDecoration: 'line-through',
-                  margin: '0',
-                  padding: '0 10px'
-                }}
-              >Rp. 234.567</p>
+              }}>{product.nama_produk}</h1>
+              {product.is_diskon && product.harga_diskon && (
+                <p
+                  className="diskon-price"
+                  style={{
+                    color: '#FA766A',
+                    fontSize: '14px',
+                    textDecoration: 'line-through',
+                    margin: '0',
+                    padding: '0 10px'
+                  }}
+                >{formatPrice(product.harga)}</p>
+              )}
               <p style={{
                 color: 'var(--primary-color)',
                 fontSize: 'var(--font-size-medium)',
@@ -192,7 +209,7 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
                 justifyContent: 'space-between',
                 width: '100%'
               }}>
-                Rp. 123.456
+                {product.is_diskon && product.harga_diskon ? formatPrice(product.harga_diskon) : formatPrice(product.harga)}
                 <span>
                   <img
                     src="/icons/shopping-cart.png"
@@ -247,20 +264,25 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
         justifySelf: 'start'
       }} />
 
-      <button style={{
-        backgroundColor: 'var(--primary-color)',
-        color: 'white',
-        border: 'none',
-        padding: '5px 20px',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        fontSize: '14px',
-        gridArea: 'header',
-        justifySelf: 'end',
-        alignSelf: 'center'
-      }}>
+      <Link
+        href="/katalog"
+        style={{
+          backgroundColor: 'var(--primary-color)',
+          color: 'white',
+          border: 'none',
+          padding: '5px 20px',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          fontSize: '14px',
+          gridArea: 'header',
+          justifySelf: 'end',
+          alignSelf: 'center',
+          textDecoration: 'none',
+          display: 'inline-block'
+        }}
+      >
         Lihat Selengkapnya   &gt;
-      </button>
+      </Link>
 
       <div
         className={`${type}-olt`}
@@ -274,21 +296,23 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
           border: '#D9D9D9 solid 1px'
         }}
       >
-        <button style={{
-          display: 'flex',
-          width: '100%',
-          height: '100%',
-          background: 'none',
-          border: 'none',
-          padding: '0',
-          cursor: 'pointer',
-          textAlign: 'left',
-          alignItems: 'center',
-          gap: '20px'
-        }}>
+        <a
+          href={safeProducts.length > 0 ? `/detail-produk/${safeProducts[0].id}` : '#'}
+          style={{
+            display: 'flex',
+            width: '100%',
+            height: '100%',
+            textDecoration: 'none',
+            color: 'inherit',
+            cursor: 'pointer',
+            textAlign: 'left',
+            alignItems: 'center',
+            gap: '20px'
+          }}
+        >
           <img
-            src="/icons/product.png"
-            alt=""
+            src={safeProducts.length > 0 ? getProductImage(safeProducts[0]) : '/icons/product.png'}
+            alt={safeProducts.length > 0 ? safeProducts[0].nama_produk : 'Product'}
             style={{
               width: '181px',
               height: '181px',
@@ -313,7 +337,7 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
               color: 'var(--grey-text)',
               margin: '0 0 30px 0',
               fontWeight: 'var(--font-weight-regular)'
-            }}>Nama Product</p>
+            }}>{safeProducts.length > 0 ? safeProducts[0].nama_produk : 'Nama Product'}</p>
             <div
               className="price"
               style={{
@@ -333,7 +357,7 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                Rp. 123.456
+                {safeProducts.length > 0 ? formatPrice(safeProducts[0].harga) : 'Rp. 123.456'}
                 <span>
                   <img
                     src="/icons/shopping-cart.png"
@@ -346,17 +370,16 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
                   />
                 </span>
               </p>
-              <a
-                href="#"
+              <span
                 style={{
                   color: 'var(--grey-text)',
                   textDecoration: 'none',
                   fontSize: '14px'
                 }}
-              >Lihat</a>
+              >Lihat</span>
             </div>
           </div>
-        </button>
+        </a>
       </div>
 
       <div
@@ -371,21 +394,23 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
           border: '#D9D9D9 solid 1px'
         }}
       >
-        <button style={{
-          display: 'flex',
-          width: '100%',
-          height: '100%',
-          background: 'none',
-          border: 'none',
-          padding: '0',
-          cursor: 'pointer',
-          textAlign: 'left',
-          alignItems: 'center',
-          gap: '20px'
-        }}>
+        <a
+          href={safeProducts.length > 1 ? `/detail-produk/${safeProducts[1].id}` : '#'}
+          style={{
+            display: 'flex',
+            width: '100%',
+            height: '100%',
+            textDecoration: 'none',
+            color: 'inherit',
+            cursor: 'pointer',
+            textAlign: 'left',
+            alignItems: 'center',
+            gap: '20px'
+          }}
+        >
           <img
-            src="/icons/product.png"
-            alt=""
+            src={safeProducts.length > 1 ? getProductImage(safeProducts[1]) : '/icons/product.png'}
+            alt={safeProducts.length > 1 ? safeProducts[1].nama_produk : 'Product'}
             style={{
               width: '181px',
               height: '181px',
@@ -410,7 +435,7 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
               color: 'var(--grey-text)',
               margin: '0 0 30px 0',
               fontWeight: 'var(--font-weight-regular)'
-            }}>Nama Product</p>
+            }}>{safeProducts.length > 1 ? safeProducts[1].nama_produk : 'Nama Product'}</p>
             <div
               className="price"
               style={{
@@ -430,7 +455,7 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                Rp. 123.456
+                {safeProducts.length > 1 ? formatPrice(safeProducts[1].harga) : 'Rp. 123.456'}
                 <span>
                   <img
                     src="/icons/shopping-cart.png"
@@ -443,17 +468,16 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
                   />
                 </span>
               </p>
-              <a
-                href="#"
+              <span
                 style={{
                   color: 'var(--grey-text)',
                   textDecoration: 'none',
                   fontSize: '14px'
                 }}
-              >Lihat</a>
+              >Lihat</span>
             </div>
           </div>
-        </button>
+        </a>
       </div>
 
       <div
@@ -465,10 +489,10 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
           gap: '20px'
         }}
       >
-        {[1, 2, 3, 4, 5, 6].map((item) => (
+        {safeProducts.slice(0, 6).map((product, index) => (
           <div
-            key={item}
-            className={`${type}-${item}`}
+            key={product.id}
+            className={`${type}-${index + 1}`}
             style={{
               backgroundColor: 'var(--secondary-color)',
               textAlign: 'left',
@@ -477,11 +501,11 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
               margin: '0 auto',
               display: 'flex',
               flexDirection: 'column',
-              position: type === 'terbaru' ? 'relative' : 'initial'
+              position: isNewProduct(product) ? 'relative' : 'initial'
             }}
           >
             <a
-              href="#"
+              href={`/detail-produk/${product.id}`}
               style={{
                 textDecoration: 'none',
                 color: 'inherit',
@@ -490,8 +514,8 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
               }}
             >
               <img
-                src="/icons/product.png"
-                alt=""
+                src={getProductImage(product)}
+                alt={product.nama_produk}
                 style={{
                   width: '100%',
                   objectFit: 'contain',
@@ -501,17 +525,17 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
               <h1 style={{
                 fontSize: 'var(--font-size-medium)',
                 color: 'var(--grey-text)',
-                margin: type === 'terbaru' ? '5px 0 15px 0' : '5px 0 8px 0',
+                margin: isNewProduct(product) ? '5px 0 15px 0' : '5px 0 8px 0',
                 padding: '0 10px 0 10px',
                 fontWeight: 'var(--font-weight-semibold)',
                 width: '100%',
                 textAlign: 'left',
-                display: type === 'terbaru' ? 'flex' : 'block',
-                alignItems: type === 'terbaru' ? 'center' : 'initial',
-                gap: type === 'terbaru' ? '8px' : 'initial'
+                display: isNewProduct(product) ? 'flex' : 'block',
+                alignItems: isNewProduct(product) ? 'center' : 'initial',
+                gap: isNewProduct(product) ? '8px' : 'initial'
               }}>
-                Nama Product
-                {type === 'terbaru' && (
+                {product.nama_produk}
+                {isNewProduct(product) && (
                   <div
                     className="terbaru-tag"
                     style={{
@@ -536,7 +560,7 @@ export default function ProductSection({ title, type }: ProductSectionProps) {
                 justifyContent: 'space-between',
                 width: '100%'
               }}>
-                Rp. 123.456
+                {formatPrice(product.harga)}
                 <span>
                   <img
                     src="/icons/shopping-cart.png"

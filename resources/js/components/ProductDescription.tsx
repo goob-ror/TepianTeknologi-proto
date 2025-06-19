@@ -1,6 +1,12 @@
-export default function ProductDescription() {
+import { Product } from '../types';
+
+interface ProductDescriptionProps {
+  product: Product;
+}
+
+export default function ProductDescription({ product }: ProductDescriptionProps) {
   return (
-    <div 
+    <div
       className="detail-product-description"
       style={{
         margin: '20px 0 20px 5px',
@@ -9,7 +15,7 @@ export default function ProductDescription() {
         width: '1000px'
       }}
     >
-      <div 
+      <div
         className="detail-description"
         style={{
           padding: '20px',
@@ -34,14 +40,14 @@ export default function ProductDescription() {
             marginBottom: '20px'
           }}
         />
-        <p 
+        <p
           className="text-description"
           style={{
             margin: 0,
             lineHeight: '1.6'
           }}
         >
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Possimus, atque impedit? Atque facilis numquam et vero natus deleniti minus, nobis, itaque repudiandae recusandae mollitia eveniet, repellendus totam voluptate fugit maxime!
+          {product.deskripsi || 'Deskripsi produk belum tersedia.'}
         </p>
       </div>
     </div>

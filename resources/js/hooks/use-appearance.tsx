@@ -71,3 +71,14 @@ export function useAppearance() {
 
     return { appearance, updateAppearance } as const;
 }
+
+// Admin-specific theme functions that force dark mode
+export function initializeAdminTheme() {
+    // Force dark mode for admin pages
+    document.documentElement.classList.add('dark');
+}
+
+export function useAdminAppearance() {
+    // Admin pages are always in dark mode
+    return { appearance: 'dark' as const, updateAppearance: () => {} } as const;
+}

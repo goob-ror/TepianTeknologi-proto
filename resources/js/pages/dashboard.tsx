@@ -26,8 +26,8 @@ export default function Dashboard() {
     const { auth } = usePage<SharedData>().props;
 
     const { data: profileData, setData: setProfileData, patch: patchProfile, errors: profileErrors, processing: profileProcessing, recentlySuccessful: profileSuccess } = useForm<Required<ProfileForm>>({
-        name: auth.user.name || '',
-        fullname: (auth.user as any).fullname || '',
+        name: auth.user.name || auth.user.nama_lengkap || '',
+        fullname: (auth.user as any).fullname || auth.user.nama_lengkap || '',
         email: auth.user.email || '',
         phone: (auth.user as any).phone || '',
         address: (auth.user as any).address || '',

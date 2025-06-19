@@ -10,6 +10,17 @@ export default function Navigation() {
     e.preventDefault();
     router.post('/logout');
   };
+
+  // Determine profile link and tooltip based on user role
+  const getProfileLink = () => {
+    if (!auth.user) return '/login';
+    return auth.user.role === 'admin' ? '/admin/dashboard' : '/dashboard';
+  };
+
+  const getProfileTooltip = () => {
+    if (!auth.user) return 'Login';
+    return auth.user.role === 'admin' ? 'Admin Dashboard' : 'Profil Pengguna';
+  };
   return (
     <div className="navigation flex flex-col w-full shadow-md">
       {/* Information Bar */}
@@ -26,7 +37,7 @@ export default function Navigation() {
           <p className="m-0 flex items-center gap-2 font-regular">
             Call Us{' '}
             <a
-              href="https://wa.me/6285171639082"
+              href="https://wa.me/62895360022327"
               style={{
                 color: 'var(--light-text)',
                 textDecoration: 'none',
@@ -39,7 +50,7 @@ export default function Navigation() {
             </a>{' '}
             |{' '}
             <a
-              href="https://wa.me/6285171639082"
+              href="https://wa.me/62895360022327"
               style={{
                 color: 'var(--light-text)',
                 textDecoration: 'none',
@@ -48,7 +59,7 @@ export default function Navigation() {
               }}
               className="hover:opacity-80"
             >
-              +62-851-7163-9082
+              +62-895-3600-22327
             </a>
           </p>
           <p className="m-0 flex items-center gap-2 font-regular">|</p>
@@ -259,21 +270,16 @@ export default function Navigation() {
               Keranjang Belanja
             </span>
           </Link>
-          {auth.user ? (
-            <Link href="/dashboard" className="transition-transform duration-200 hover:scale-110 relative group" title="Profil Pengguna">
-              <img src="/icons/Avatar-Logo.png" alt="User" className="w-[59px] h-[56px]" />
-              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                Profil Pengguna
-              </span>
-            </Link>
-          ) : (
-            <Link href="/login" className="transition-transform duration-200 hover:scale-110 relative group" title="Login">
-              <img src="/icons/Avatar-Logo.png" alt="User" className="w-[59px] h-[56px]" />
-              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                Login
-              </span>
-            </Link>
-          )}
+          <Link
+            href={getProfileLink()}
+            className="transition-transform duration-200 hover:scale-110 relative group"
+            title={getProfileTooltip()}
+          >
+            <img src="/icons/Avatar-Logo.png" alt="User" className="w-[59px] h-[56px]" />
+            <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+              {getProfileTooltip()}
+            </span>
+          </Link>
         </div>
       </nav>
     </div>

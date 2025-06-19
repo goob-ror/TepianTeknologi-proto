@@ -2,169 +2,41 @@ import { useState } from 'react';
 import Navigation from './Navigation';
 import BenefitSection from './BenefitSection';
 import Footer from './Footer';
-import { Button } from './ui/button';
 
 interface OrderItem {
-  id: string;
+  id: number;
   name: string;
   price: number;
   quantity: number;
   image: string;
-  total: number;
+  category: string;
+  subtotal: number;
 }
 
 interface Order {
-  id: string;
+  id: number;
   date: string;
-  items: OrderItem[];
-  totalItems: number;
-  totalPrice: number;
   status: 'processing' | 'completed';
+  raw_status: 'menunggu' | 'dibayar' | 'dikirim' | 'selesai' | 'dibatalkan';
+  status_text: string;
+  total: number;
+  items: OrderItem[];
+  payment_status: string;
+  payment_status_text: string;
+  shipping_status: string;
+  shipping_status_text: string;
+  tracking_number?: string;
 }
 
-// Mock data for demonstration
-const mockOrders: Order[] = [
-  // Processing Orders
-  {
-    id: '1',
-    date: '15/10/2025',
-    status: 'processing',
-    totalItems: 4,
-    totalPrice: 1000000,
-    items: [
-      {
-        id: '1',
-        name: 'Router Mikrotik RB750Gr3',
-        price: 850000,
-        quantity: 2,
-        image: '/icons/product.png',
-        total: 1700000
-      },
-      {
-        id: '2',
-        name: 'Switch TP-Link 24 Port',
-        price: 650000,
-        quantity: 1,
-        image: '/icons/product.png',
-        total: 650000
-      }
-    ]
-  },
-  {
-    id: '2',
-    date: '12/10/2025',
-    status: 'processing',
-    totalItems: 3,
-    totalPrice: 2500000,
-    items: [
-      {
-        id: '3',
-        name: 'Access Point Ubiquiti',
-        price: 1200000,
-        quantity: 2,
-        image: '/icons/product.png',
-        total: 2400000
-      },
-      {
-        id: '4',
-        name: 'Kabel UTP Cat6 100m',
-        price: 450000,
-        quantity: 1,
-        image: '/icons/product.png',
-        total: 450000
-      }
-    ]
-  },
-  // Completed Orders
-  {
-    id: '3',
-    date: '08/10/2025',
-    status: 'completed',
-    totalItems: 5,
-    totalPrice: 3200000,
-    items: [
-      {
-        id: '5',
-        name: 'Server Dell PowerEdge T40',
-        price: 2800000,
-        quantity: 1,
-        image: '/icons/product.png',
-        total: 2800000
-      },
-      {
-        id: '6',
-        name: 'RAM DDR4 16GB',
-        price: 800000,
-        quantity: 2,
-        image: '/icons/product.png',
-        total: 1600000
-      },
-      {
-        id: '7',
-        name: 'SSD 1TB Samsung',
-        price: 1200000,
-        quantity: 1,
-        image: '/icons/product.png',
-        total: 1200000
-      }
-    ]
-  },
-  {
-    id: '4',
-    date: '05/10/2025',
-    status: 'completed',
-    totalItems: 2,
-    totalPrice: 1800000,
-    items: [
-      {
-        id: '8',
-        name: 'Firewall Fortinet FortiGate',
-        price: 1500000,
-        quantity: 1,
-        image: '/icons/product.png',
-        total: 1500000
-      },
-      {
-        id: '9',
-        name: 'Patch Panel 24 Port',
-        price: 300000,
-        quantity: 1,
-        image: '/icons/product.png',
-        total: 300000
-      }
-    ]
-  },
-  {
-    id: '5',
-    date: '01/10/2025',
-    status: 'completed',
-    totalItems: 3,
-    totalPrice: 2100000,
-    items: [
-      {
-        id: '10',
-        name: 'Laptop Lenovo ThinkPad',
-        price: 1800000,
-        quantity: 1,
-        image: '/icons/product.png',
-        total: 1800000
-      },
-      {
-        id: '11',
-        name: 'Mouse Wireless Logitech',
-        price: 150000,
-        quantity: 2,
-        image: '/icons/product.png',
-        total: 300000
-      }
-    ]
-  }
-];
+interface HistoryProps {
+  orders: Order[];
+}
+import { Button } from './ui/button';
 
 const OrderItem = ({ item }: { item: OrderItem }) => {
   const handleWhatsAppContact = () => {
-    const message = `Halo, saya ingin menanyakan tentang pesanan ${item.name}`;
-    const whatsappUrl = `https://wa.me/6285171639082?text=${encodeURIComponent(message)}`;
+    const message = `Halo, saya ingin menanyakan tentang produk :- ${item.name}`;
+    const whatsappUrl = `https://wa.me/62895360022327?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -221,7 +93,7 @@ const OrderItem = ({ item }: { item: OrderItem }) => {
               margin: 0
             }}
           >
-            Total: <span style={{ color: 'var(--primary-color)' }}>Rp. {item.total.toLocaleString('id-ID')}</span>
+            Total: <span style={{ color: 'var(--primary-color)' }}>Rp. {item.subtotal.toLocaleString('id-ID')}</span>
           </h2>
           <Button
             onClick={handleWhatsAppContact}
@@ -246,29 +118,127 @@ const OrderItem = ({ item }: { item: OrderItem }) => {
 };
 
 const OrderGroup = ({ order }: { order: Order }) => {
-  const handleOrderComplete = () => {
-    // Handle order completion logic here
-    console.log(`Marking order ${order.id} as complete`);
+  // Get status color based on order status
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'menunggu':
+        return '#FFA500'; // Orange
+      case 'dibayar':
+        return '#007BFF'; // Blue
+      case 'dikirim':
+        return '#6F42C1'; // Purple
+      case 'selesai':
+        return '#28a745'; // Green
+      case 'dibatalkan':
+        return '#DC3545'; // Red
+      default:
+        return '#6C757D'; // Gray
+    }
   };
 
   return (
     <div className="mb-8">
-      <h1
-        style={{
-          fontFamily: 'var(--main-font)',
-          fontSize: 'var(--font-size-large)',
-          fontWeight: 'var(--font-weight-semibold)',
-          margin: '10px 10px',
-          color: 'var(--grey-text)'
-        }}
-      >
-        Pemesanan Tanggal : <span style={{ color: 'var(--primary-color)' }}>{order.date}</span>
-      </h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1
+          style={{
+            fontFamily: 'var(--main-font)',
+            fontSize: 'var(--font-size-large)',
+            fontWeight: 'var(--font-weight-semibold)',
+            margin: '10px 10px',
+            color: 'var(--grey-text)'
+          }}
+        >
+          Pemesanan Tanggal : <span style={{ color: 'var(--primary-color)' }}>{order.date}</span>
+        </h1>
+
+        {/* Order Status Badge */}
+        <div
+          className="px-4 py-2 rounded-full text-white text-sm font-semibold"
+          style={{
+            backgroundColor: getStatusColor(order.raw_status),
+            fontFamily: 'var(--main-font)'
+          }}
+        >
+          {order.status_text}
+        </div>
+      </div>
+
       <hr style={{ border: '1px solid #D9D9D9', marginBottom: '20px' }} />
 
       {order.items.map((item) => (
         <OrderItem key={item.id} item={item} />
       ))}
+
+      {/* Status Information Section */}
+      <div className="bg-gray-50 p-4 rounded-lg mb-4">
+        <h3
+          style={{
+            fontFamily: 'var(--main-font)',
+            fontSize: 'var(--font-size-medium)',
+            fontWeight: 'var(--font-weight-semibold)',
+            color: 'var(--grey-text)',
+            marginBottom: '12px'
+          }}
+        >
+          Status Pesanan
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Payment Status */}
+          <div>
+            <p style={{
+              margin: 0,
+              fontSize: 'var(--font-size-small)',
+              color: '#6C757D',
+              fontFamily: 'var(--main-font)'
+            }}>
+              Status Pembayaran:
+            </p>
+            <p style={{
+              margin: 0,
+              fontSize: 'var(--font-size-medium)',
+              fontWeight: 'var(--font-weight-semibold)',
+              color: 'var(--grey-text)',
+              fontFamily: 'var(--main-font)'
+            }}>
+              {order.payment_status_text}
+            </p>
+          </div>
+
+          {/* Shipping Status */}
+          <div>
+            <p style={{
+              margin: 0,
+              fontSize: 'var(--font-size-small)',
+              color: '#6C757D',
+              fontFamily: 'var(--main-font)'
+            }}>
+              Status Pengiriman:
+            </p>
+            <p style={{
+              margin: 0,
+              fontSize: 'var(--font-size-medium)',
+              fontWeight: 'var(--font-weight-semibold)',
+              color: 'var(--grey-text)',
+              fontFamily: 'var(--main-font)'
+            }}>
+              {order.shipping_status_text}
+            </p>
+
+            {/* Tracking Number */}
+            {order.tracking_number && (
+              <p style={{
+                margin: '4px 0 0 0',
+                fontSize: 'var(--font-size-small)',
+                color: 'var(--primary-color)',
+                fontFamily: 'var(--main-font)'
+              }}>
+                No. Resi: {order.tracking_number}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
 
       <div
         className="flex flex-col items-end gap-2.5 mt-2.5 pb-5 border-b-2 border-gray-300"
@@ -281,22 +251,11 @@ const OrderGroup = ({ order }: { order: Order }) => {
           {order.status === 'completed' ? 'Tanggal pemesanan selesai:' : 'Tanggal pemesanan:'} <span style={{ fontWeight: 'var(--font-weight-semibold)' }}>{order.date}</span>
         </p>
         <p style={{ margin: 0, fontSize: 'var(--font-size-medium)' }}>
-          Jumlah Item: <span style={{ fontWeight: 'var(--font-weight-semibold)' }}>{order.totalItems}</span> item
+          Jumlah Item: <span style={{ fontWeight: 'var(--font-weight-semibold)' }}>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</span> item
         </p>
         <div className="flex justify-between items-center w-full">
-          {order.status === 'processing' ? (
-            <Button
-              onClick={handleOrderComplete}
-              className="px-5 py-2.5 text-white border-none"
-              style={{
-                backgroundColor: '#FA766A',
-                fontFamily: 'var(--main-font)',
-                fontSize: 'var(--font-size-medium)'
-              }}
-            >
-              Pesanan Selesai
-            </Button>
-          ) : (
+          {/* Only show "Pesanan Selesai" status when order is actually completed */}
+          {order.raw_status === 'selesai' ? (
             <div
               className="px-5 py-2.5 text-white border-none"
               style={{
@@ -312,6 +271,34 @@ const OrderGroup = ({ order }: { order: Order }) => {
               <span>✓</span>
               <span>Pesanan Selesai</span>
             </div>
+          ) : order.raw_status === 'dibatalkan' ? (
+            <div
+              className="px-5 py-2.5 text-white border-none"
+              style={{
+                backgroundColor: '#DC3545',
+                fontFamily: 'var(--main-font)',
+                fontSize: 'var(--font-size-medium)',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>✗</span>
+              <span>Pesanan Dibatalkan</span>
+            </div>
+          ) : (
+            <div
+              className="px-5 py-2.5 text-white border-none"
+              style={{
+                backgroundColor: getStatusColor(order.raw_status),
+                fontFamily: 'var(--main-font)',
+                fontSize: 'var(--font-size-medium)',
+                borderRadius: '4px'
+              }}
+            >
+              {order.status_text}
+            </div>
           )}
           <p
             style={{
@@ -321,7 +308,7 @@ const OrderGroup = ({ order }: { order: Order }) => {
               color: 'var(--grey-text)'
             }}
           >
-            Total: <span style={{ color: 'var(--primary-color)' }}>Rp. {order.totalPrice.toLocaleString('id-ID')}</span>
+            Total: <span style={{ color: 'var(--primary-color)' }}>Rp. {order.total.toLocaleString('id-ID')}</span>
           </p>
         </div>
       </div>
@@ -329,10 +316,17 @@ const OrderGroup = ({ order }: { order: Order }) => {
   );
 };
 
-export default function History() {
+export default function History({ orders }: HistoryProps) {
   const [activeTab, setActiveTab] = useState<'processing' | 'completed'>('processing');
 
-  const filteredOrders = mockOrders.filter(order => order.status === activeTab);
+  // Filter orders based on tab, but exclude cancelled orders from processing tab
+  const filteredOrders = orders.filter(order => {
+    if (activeTab === 'processing') {
+      return order.status === 'processing' && order.raw_status !== 'dibatalkan';
+    } else {
+      return order.status === 'completed' || order.raw_status === 'dibatalkan';
+    }
+  });
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--secondary-color)' }}>
@@ -380,7 +374,7 @@ export default function History() {
               fontWeight: 'var(--font-weight-semibold)'
             }}
           >
-            Pesanan Selesai
+            Riwayat Pesanan
           </Button>
         </div>
 
@@ -399,7 +393,9 @@ export default function History() {
                 color: 'var(--grey-text)'
               }}
             >
-              {activeTab === 'processing' ? 'Tidak ada pesanan yang sedang diproses' : 'Tidak ada pesanan yang selesai'}
+              {activeTab === 'processing'
+                ? 'Tidak ada pesanan yang sedang diproses'
+                : 'Tidak ada pesanan yang selesai atau dibatalkan'}
             </div>
           )}
         </section>

@@ -7,8 +7,25 @@ import DetailProductSection from '../components/DetailProductSection';
 import ProductDescription from '../components/ProductDescription';
 import RelatedProducts from '../components/RelatedProducts';
 import { PageLoader } from '../components/Loader';
+import { Category, Brand, Product } from '../types';
 
-export default function DetailProduk() {
+interface DetailProdukProps {
+  product: Product;
+  relatedProducts: Product[];
+  categories: Category[];
+  brands: Brand[];
+  filters: {
+    category_id?: string;
+    brand_id?: string;
+    price_min?: string;
+    price_max?: string;
+    search?: string;
+    sort_by?: string;
+    sort_order?: string;
+  };
+}
+
+export default function DetailProduk({ product, relatedProducts, categories, brands, filters }: DetailProdukProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -26,7 +43,7 @@ export default function DetailProduk() {
 
   return (
     <>
-      <Head title="Detail -">
+      <Head title={`${product.nama_produk} - Detail`}>
         <link rel="icon" href="/favicon.png" type="image/png" />
       </Head>
       <div className="min-h-screen" style={{ backgroundColor: '#EFEFEF', fontFamily: 'Montserrat, sans-serif' }}>
@@ -40,11 +57,16 @@ export default function DetailProduk() {
             margin: '80px 60px 20px 60px'
           }}
         >
-          <FilterSidebar height="1300px" />
+          <FilterSidebar
+            height="1300px"
+            categories={categories}
+            brands={brands}
+            filters={filters}
+          />
           <section className="section-detail flex flex-col">
-            <DetailProductSection />
-            <ProductDescription />
-            <RelatedProducts />
+            <DetailProductSection product={product} />
+            <ProductDescription product={product} />
+            <RelatedProducts products={relatedProducts} />
           </section>
         </div>
       </main>

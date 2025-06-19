@@ -1,6 +1,11 @@
 
 
 export default function BreakContact() {
+  const handleWhatsAppContact = () => {
+    const message = `Halo, saya ingin menanyakan tentang produk yang tersedia`;
+    const whatsappUrl = `https://wa.me/62895360022327?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
   return (
     <div
       className="break-contact"
@@ -25,6 +30,7 @@ export default function BreakContact() {
         Hubungkan Dengan <span style={{ color: 'var(--primary-color)' }}>Admin</span> Untuk Produk Yang Anda Cari!
       </h1>
       <button
+        onClick={handleWhatsAppContact}
         style={{
           display: 'flex',
           alignItems: 'center',

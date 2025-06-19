@@ -15,8 +15,9 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Kategori::all();
-        return Inertia::render('admin/category/index', [
+        $categories = Kategori::withCount('products')->orderBy('nama_kategori')->get();
+
+        return Inertia::render('admin/categories/index', [
             'categories' => $categories,
         ]);
     }
@@ -26,7 +27,7 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        return Inertia::render('admin/category/create');
+        return Inertia::render('admin/categories/create');
     }
 
     /**
@@ -35,76 +36,85 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'jenis_kategori' => 'required|string|max:255|unique:kategoris,jenis_kategori',
-            'deskripsi' => 'nullable|string',
+            'nama_kategori' => 'required|string|max:100|unique:kategori_produk,nama_kategori',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
         Kategori::create([
-            'jenis_kategori' => $request->jenis_kategori,
-            'deskripsi' => $request->deskripsi,
+            'nama_kategori' => $request->nama_kategori,
         ]);
 
         return redirect()->route('admin.categories.index')
-            ->with('success', 'Category created successfully.');
+            ->with('success', 'Kategori berhasil ditambahkan.');
+    }
+
+    /**
+     * Display the specified category.
+     */
+    public function show(Kategori $category)
+    {
+        $category->load(['products' => function ($query) {
+            $query->with('brand')->orderBy('nama_produk');
+        }]);
+
+        return Inertia::render('admin/categories/show', [
+            'category' => $category,
+        ]);
     }
 
     /**
      * Show the form for editing the specified category.
      */
-    public function edit($id)
+    public function edit(Kategori $category)
     {
-        $category = Kategori::findOrFail($id);
-
-        return Inertia::render('admin/category/edit', [
-            'category' => $category
+        return Inertia::render('admin/categories/edit', [
+            'category' => $category,
         ]);
     }
 
     /**
      * Update the specified category in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Kategori $category)
     {
-        $category = Kategori::findOrFail($id);
-
         $validator = Validator::make($request->all(), [
-            'jenis_kategori' => 'required|string|max:255|unique:kategoris,jenis_kategori,' . $id,
-            'deskripsi' => 'nullable|string',
+            'nama_kategori' => 'required|string|max:100|unique:kategori_produk,nama_kategori,' . $category->id,
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
         $category->update([
-            'jenis_kategori' => $request->jenis_kategori,
-            'deskripsi' => $request->deskripsi,
+            'nama_kategori' => $request->nama_kategori,
         ]);
 
         return redirect()->route('admin.categories.index')
-            ->with('success', 'Category updated successfully.');
+            ->with('success', 'Kategori berhasil diperbarui.');
     }
 
     /**
      * Remove the specified category from storage.
      */
-    public function destroy($id)
+    public function destroy(Kategori $category)
     {
-        $category = Kategori::findOrFail($id);
-
-        // Check if the category has associated products
+        // Check if category has products
         if ($category->products()->count() > 0) {
             return redirect()->back()
-                ->with('error', 'Cannot delete category because it has associated products.');
+                ->with('error', 'Kategori tidak dapat dihapus karena masih memiliki produk.');
         }
 
         $category->delete();
 
         return redirect()->route('admin.categories.index')
-            ->with('success', 'Category deleted successfully.');
+            ->with('success', 'Kategori berhasil dihapus.');
     }
+
 }

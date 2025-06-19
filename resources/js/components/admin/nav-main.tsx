@@ -8,6 +8,34 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
     const page = usePage();
     const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
 
+    const getIconColor = (title: string) => {
+        switch (title) {
+            case 'Dashboard': return 'text-blue-400';
+            case 'Products': return 'text-green-400';
+            case 'Categories': return 'text-yellow-400';
+            case 'Orders': return 'text-purple-400';
+            case 'Users': return 'text-pink-400';
+            case 'Admins': return 'text-orange-400';
+            case 'Reports': return 'text-cyan-400';
+            case 'Settings': return 'text-indigo-400';
+            default: return 'text-blue-400';
+        }
+    };
+
+    const getDotColor = (title: string) => {
+        switch (title) {
+            case 'Dashboard': return 'bg-blue-500';
+            case 'Products': return 'bg-green-500';
+            case 'Categories': return 'bg-yellow-500';
+            case 'Orders': return 'bg-purple-500';
+            case 'Users': return 'bg-pink-500';
+            case 'Admins': return 'bg-orange-500';
+            case 'Reports': return 'bg-cyan-500';
+            case 'Settings': return 'bg-indigo-500';
+            default: return 'bg-blue-500';
+        }
+    };
+
     const toggleDropdown = (title: string) => {
         setOpenDropdowns(prev => ({
             ...prev,
@@ -61,13 +89,14 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                                 isActive={item.href === page.url || (item.dropdown && item.dropdown.some(subItem => subItem.href === page.url))}
                                                 tooltip={{ children: item.title }}
                                                 onClick={() => toggleDropdown(item.title)}
-                                                className="justify-between"
+                                                className="justify-between hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 transition-all duration-200"
                                             >
-                                                <div className="flex items-center">
-                                                    {item.icon && <item.icon className="mr-2" />}
+                                                <div className="flex items-center gap-3">
+                                                    {item.icon && <item.icon className={`mr-2 ${getIconColor(item.title)}`} />}
                                                     <span>{item.title}</span>
+                                                    <div className={`w-2 h-2 rounded-full ${getDotColor(item.title)}`}></div>
                                                 </div>
-                                                <ChevronDown className={`h-4 w-4 transition-transform ${openDropdowns[item.title] ? 'rotate-180' : ''}`} />
+                                                <ChevronDown className={`h-4 w-4 transition-transform text-gray-400 ${openDropdowns[item.title] ? 'rotate-180' : ''}`} />
                                             </SidebarMenuButton>
                                             {openDropdowns[item.title] && (
                                                 <SidebarMenuSub>
@@ -91,10 +120,12 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                             asChild
                                             isActive={item.href === page.url}
                                             tooltip={{ children: item.title }}
+                                            className="hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 transition-all duration-200"
                                         >
-                                            <Link href={item.href} prefetch>
-                                                {item.icon && <item.icon />}
+                                            <Link href={item.href} prefetch className="flex items-center gap-3">
+                                                {item.icon && <item.icon className={getIconColor(item.title)} />}
                                                 <span>{item.title}</span>
+                                                <div className={`w-2 h-2 rounded-full ml-auto ${getDotColor(item.title)}`}></div>
                                             </Link>
                                         </SidebarMenuButton>
                                     )}

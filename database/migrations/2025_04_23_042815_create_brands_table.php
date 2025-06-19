@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use App\enum\UserRole;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
@@ -12,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
-        Schema::table('users', function(Blueprint $table) {
-            $table->string('fullname');
-            $table->boolean('isDeleted')->default(false);
-            $table->string('role')->default(UserRole::user);
+        Schema::create('brand_produk', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama_brand', 100)->unique();
+            $table->timestamps();
         });
     }
 
@@ -25,7 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('brand_produk');
     }
 };

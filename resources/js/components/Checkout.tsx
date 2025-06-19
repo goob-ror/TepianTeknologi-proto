@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Navigation from './Navigation';
 import BenefitSection from './BenefitSection';
 import Swal from 'sweetalert2';
+import { router } from '@inertiajs/react';
+import { useCart } from '../hooks/useCart';
 
 interface CartItem {
   id: string;
@@ -11,65 +13,18 @@ interface CartItem {
   image: string;
   category: string;
   checked: boolean;
+  stock: number;
+  original_price: number;
+  is_discount: boolean;
 }
 
-// Static dummy data
-const initialCartItems: CartItem[] = [
-  {
-    id: '1',
-    name: 'Router Mikrotik RB750Gr3',
-    price: 850000,
-    quantity: 2,
-    image: '/icons/product.png',
-    category: 'Optical Network Terminal',
-    checked: false
-  },
-  {
-    id: '2',
-    name: 'Switch TP-Link 24 Port',
-    price: 650000,
-    quantity: 1,
-    image: '/icons/product.png',
-    category: 'Optical Network Terminal',
-    checked: false
-  },
-  {
-    id: '3',
-    name: 'ONT Huawei HG8245H5',
-    price: 450000,
-    quantity: 1,
-    image: '/icons/product.png',
-    category: 'Optical Network Terminal',
-    checked: false
-  },
-  {
-    id: '4',
-    name: 'Access Point Ubiquiti UniFi',
-    price: 1200000,
-    quantity: 1,
-    image: '/icons/product.png',
-    category: 'Optical Line Terminal',
-    checked: false
-  },
-  {
-    id: '5',
-    name: 'OLT ZTE C320',
-    price: 2500000,
-    quantity: 1,
-    image: '/icons/product.png',
-    category: 'Optical Line Terminal',
-    checked: false
-  },
-  {
-    id: '6',
-    name: 'Fiber Optic Cable 100m',
-    price: 750000,
-    quantity: 2,
-    image: '/icons/product.png',
-    category: 'Optical Line Terminal',
-    checked: false
-  }
-];
+interface CheckoutProps {
+  cartItems?: CartItem[];
+  totalPrice?: number;
+  totalItems?: number;
+}
+
+
 
 interface ProductItemProps {
   item: CartItem;
@@ -79,13 +34,27 @@ interface ProductItemProps {
 
 const ProductItem = ({ item, onQuantityChange, onCheckboxChange }: ProductItemProps) => {
   const handleWhatsAppContact = () => {
-    const message = `Halo, saya ingin menanyakan tentang produk ${item.name}`;
-    const whatsappUrl = `https://wa.me/6285171639082?text=${encodeURIComponent(message)}`;
+    const message = `Halo, saya ingin menanyakan tentang produk :- ${item.name}`;
+    const whatsappUrl = `https://wa.me/62895360022327?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
-  const handleQuantityChange = (change: number) => {
+  const handleQuantityChange = async (change: number) => {
     const newQuantity = Math.max(1, item.quantity + change);
+
+    // Check stock limit
+    if (newQuantity > item.stock) {
+      Swal.fire({
+        title: 'Stok Tidak Mencukupi',
+        text: `Stok tersedia: ${item.stock}`,
+        icon: 'warning',
+        confirmButtonText: 'OK',
+        background: 'var(--secondary-color)',
+      });
+      return;
+    }
+
+    // Update quantity directly through the parent handler
     onQuantityChange(item.id, newQuantity);
   };
 
@@ -373,9 +342,10 @@ interface OrderSummaryProps {
   totalItems: number;
   totalPrice: number;
   onPayNow: () => void;
+  isProcessingOrder: boolean;
 }
 
-const OrderSummary = ({ totalItems, totalPrice, onPayNow }: OrderSummaryProps) => {
+const OrderSummary = ({ totalItems, totalPrice, onPayNow, isProcessingOrder }: OrderSummaryProps) => {
   return (
     <aside
       className="bg-white shadow-lg p-5 h-fit"
@@ -398,6 +368,19 @@ const OrderSummary = ({ totalItems, totalPrice, onPayNow }: OrderSummaryProps) =
         >
           Ringkasan Pesanan
         </h1>
+        {totalItems === 0 && (
+          <p
+            style={{
+              fontSize: 'var(--font-size-small)',
+              color: 'var(--grey-text)',
+              margin: '5px 0 0 0',
+              fontStyle: 'italic',
+              opacity: 0.7
+            }}
+          >
+            Pilih item untuk melihat ringkasan
+          </p>
+        )}
         <hr
           style={{
             width: '100%',
@@ -455,15 +438,30 @@ const OrderSummary = ({ totalItems, totalPrice, onPayNow }: OrderSummaryProps) =
 
         <button
           onClick={onPayNow}
-          className="flex items-center justify-center cursor-pointer transition-all duration-300 hover:bg-blue-800 w-full"
+          disabled={totalItems === 0 || isProcessingOrder}
+          className="flex items-center justify-center transition-all duration-300 w-full"
           style={{
-            backgroundColor: 'var(--primary-color)',
+            backgroundColor: (totalItems === 0 || isProcessingOrder) ? '#ccc' : 'var(--primary-color)',
             color: 'var(--light-text)',
             border: 'none',
             padding: '10px 20px',
             borderRadius: '10px',
             fontSize: 'var(--font-size-medium)',
-            fontWeight: 'var(--font-weight-semibold)'
+            fontWeight: 'var(--font-weight-semibold)',
+            cursor: (totalItems === 0 || isProcessingOrder) ? 'not-allowed' : 'pointer',
+            opacity: (totalItems === 0 || isProcessingOrder) ? 0.6 : 1
+          }}
+          onMouseEnter={(e) => {
+            const target = e.target as HTMLButtonElement;
+            if (totalItems > 0 && !isProcessingOrder) {
+              target.style.backgroundColor = '#285eff';
+            }
+          }}
+          onMouseLeave={(e) => {
+            const target = e.target as HTMLButtonElement;
+            if (totalItems > 0 && !isProcessingOrder) {
+              target.style.backgroundColor = 'var(--primary-color)';
+            }
           }}
         >
           <p
@@ -472,7 +470,7 @@ const OrderSummary = ({ totalItems, totalPrice, onPayNow }: OrderSummaryProps) =
               color: 'var(--light-text)'
             }}
           >
-            Bayar Sekarang
+            {isProcessingOrder ? 'Memproses Pesanan...' : totalItems === 0 ? 'Pilih Item Terlebih Dahulu' : 'Bayar Sekarang'}
           </p>
         </button>
       </div>
@@ -480,7 +478,7 @@ const OrderSummary = ({ totalItems, totalPrice, onPayNow }: OrderSummaryProps) =
   );
 };
 
-export default function Checkout() {
+export default function Checkout({ cartItems: initialCartItems, totalPrice: initialTotalPrice, totalItems: initialTotalItems }: CheckoutProps) {
   // Add CSS to hide webkit spin buttons and style scrollbar
   const customStyles = `
     input[type="number"]::-webkit-outer-spin-button,
@@ -515,178 +513,479 @@ export default function Checkout() {
     }
 
     /* SweetAlert2 Custom Styling */
-    .checkout-payment-popup {
+    .checkout-form-popup {
       font-family: var(--main-font) !important;
-      border-radius: 15px !important;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
-      border: 2px solid var(--primary-color) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+      border: none !important;
+      max-width: 600px !important;
+      width: 90% !important;
     }
 
-    .checkout-payment-title {
+    .checkout-form-title {
       font-family: var(--main-font) !important;
       font-size: var(--font-size-xlarge) !important;
+      font-weight: var(--font-weight-bold) !important;
+      color: var(--grey-text) !important;
+      margin-bottom: 0 !important;
+      padding-bottom: 15px !important;
+      border-bottom: 2px solid var(--primary-color) !important;
+    }
+
+    .checkout-form-confirm {
+      background: var(--primary-color) !important;
+      border: none !important;
+      border-radius: 8px !important;
+      padding: 12px 24px !important;
+      font-size: var(--font-size-medium) !important;
       font-weight: var(--font-weight-semibold) !important;
-      color: var(--primary-color) !important;
-      margin-bottom: 10px !important;
+      font-family: var(--main-font) !important;
+      transition: all 0.3s ease !important;
+    }
+
+    .checkout-form-confirm:hover {
+      background: #285eff !important;
+      transform: translateY(-1px) !important;
+    }
+
+    .checkout-form-cancel {
+      background: #6b7280 !important;
+      border: none !important;
+      border-radius: 8px !important;
+      padding: 12px 24px !important;
+      font-size: var(--font-size-medium) !important;
+      font-weight: var(--font-weight-semibold) !important;
+      font-family: var(--main-font) !important;
+      transition: all 0.3s ease !important;
+    }
+
+    .checkout-form-cancel:hover {
+      background: #4b5563 !important;
+      transform: translateY(-1px) !important;
     }
 
     .checkout-success-popup {
       font-family: var(--main-font) !important;
-      border-radius: 15px !important;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
-      border: 2px solid #28a745 !important;
+      border-radius: 16px !important;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+      border: none !important;
     }
 
     .checkout-success-title {
       font-family: var(--main-font) !important;
       font-size: var(--font-size-xlarge) !important;
       font-weight: var(--font-weight-semibold) !important;
-      color: #28a745 !important;
+      color: #059669 !important;
     }
 
     /* Override SweetAlert2 default styles */
     .swal2-popup {
-      padding: 30px !important;
+      padding: 0 !important;
     }
 
     .swal2-title {
-      padding: 0 !important;
-      margin: 0 0 20px 0 !important;
+      padding: 25px 25px 0 25px !important;
+      margin: 0 !important;
     }
 
     .swal2-html-container {
       margin: 0 !important;
       padding: 0 !important;
     }
+
+    .swal2-actions {
+      padding: 20px 25px 25px 25px !important;
+      margin: 0 !important;
+      gap: 12px !important;
+    }
+
+    .swal2-validation-message {
+      background: #fef2f2 !important;
+      color: #dc2626 !important;
+      border: 1px solid #fecaca !important;
+      border-radius: 8px !important;
+      padding: 12px !important;
+      font-family: var(--main-font) !important;
+      font-size: var(--font-size-medium) !important;
+    }
   `;
-  const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems);
-  const [ontChecked, setOntChecked] = useState(false);
-  const [oltChecked, setOltChecked] = useState(false);
+  const { cartItems, updateItemChecked, updateItemQuantity, updateCartItem } = useCart();
+  const [categoryCheckedStates, setCategoryCheckedStates] = useState<{[key: string]: boolean}>({});
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
+
+  // Get unique categories from cart items - memoized to prevent infinite re-renders
+  const categories = useMemo(() => {
+    return [...new Set(cartItems.map(item => item.category))];
+  }, [cartItems]);
 
   // Update category checkbox states based on individual product selections
   useEffect(() => {
-    const ontItems = cartItems.filter(item => item.category === 'Optical Network Terminal');
-    const oltItems = cartItems.filter(item => item.category === 'Optical Line Terminal');
+    const newCategoryStates: {[key: string]: boolean} = {};
 
-    // Check if all ONT items are selected
-    const allOntChecked = ontItems.length > 0 && ontItems.every(item => item.checked);
-    setOntChecked(allOntChecked);
+    categories.forEach(category => {
+      const categoryItems = cartItems.filter(item => item.category === category);
+      const allCategoryItemsChecked = categoryItems.length > 0 && categoryItems.every(item => item.checked);
+      newCategoryStates[category] = allCategoryItemsChecked;
+    });
 
-    // Check if all OLT items are selected
-    const allOltChecked = oltItems.length > 0 && oltItems.every(item => item.checked);
-    setOltChecked(allOltChecked);
-  }, [cartItems]);
+    setCategoryCheckedStates(newCategoryStates);
+  }, [cartItems, categories]);
 
-  const handleQuantityChange = (id: string, newQuantity: number) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
+  const handleQuantityChange = async (id: string, newQuantity: number) => {
+    // Update localStorage cart
+    await updateCartItem(parseInt(id), newQuantity);
+    // Update local state for UI
+    updateItemQuantity(id, newQuantity);
   };
 
   const handleProductCheckboxChange = (id: string, checked: boolean) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id ? { ...item, checked } : item
-      )
-    );
+    // Update local state for UI
+    updateItemChecked(id, checked);
   };
 
   const handleCategoryCheckboxChange = (category: string, checked: boolean) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.category === category ? { ...item, checked } : item
-      )
-    );
-  };
-
-  const handlePayNow = () => {
-    Swal.fire({
-      title: 'Memproses Pembayaran...',
-      html: `
-        <div style="text-align: center; font-family: var(--main-font);">
-          <div style="margin: 20px 0;">
-            <div style="
-              width: 50px;
-              height: 50px;
-              border: 4px solid #f3f3f3;
-              border-top: 4px solid var(--primary-color);
-              border-radius: 50%;
-              animation: spin 1s linear infinite;
-              margin: 0 auto;
-            "></div>
-          </div>
-          <p style="
-            color: var(--grey-text);
-            font-size: var(--font-size-medium);
-            margin: 15px 0 5px 0;
-            font-weight: var(--font-weight-medium);
-            animation: pulse 2s ease-in-out infinite;
-          ">
-            Sedang mengarahkan ke halaman pembayaran...
-          </p>
-          <p style="
-            color: var(--primary-color);
-            font-size: var(--font-size-small);
-            margin: 0;
-            font-weight: var(--font-weight-semibold);
-          ">
-            Total: Rp. ${totalPrice.toLocaleString('id-ID')}
-          </p>
-        </div>
-        <style>
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-          @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-          }
-        </style>
-      `,
-      showConfirmButton: false,
-      showCancelButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      background: 'var(--secondary-color)',
-      customClass: {
-        popup: 'checkout-payment-popup',
-        title: 'checkout-payment-title'
-      },
-      didOpen: () => {
-        // Auto close after 3 seconds and redirect
-        setTimeout(() => {
-          Swal.close();
-          // Here you would typically redirect to actual payment gateway
-          // For demo purposes, we'll show a success message
-          setTimeout(() => {
-            Swal.fire({
-              title: 'Berhasil!',
-              text: 'Anda akan diarahkan ke halaman pembayaran',
-              icon: 'success',
-              showConfirmButton: false,
-              timer: 2000,
-              background: 'var(--secondary-color)',
-              customClass: {
-                popup: 'checkout-success-popup',
-                title: 'checkout-success-title'
-              }
-            });
-          }, 500);
-        }, 3000);
+    // Update all items in the category
+    cartItems.forEach(item => {
+      if (item.category === category) {
+        updateItemChecked(item.id, checked);
       }
     });
   };
 
-  // Group items by category
-  const ontItems = cartItems.filter(item => item.category === 'Optical Network Terminal');
-  const oltItems = cartItems.filter(item => item.category === 'Optical Line Terminal');
+  const handlePayNow = async () => {
+    const selectedItems = cartItems.filter(item => item.checked);
 
-  // Calculate totals
+    if (selectedItems.length === 0) {
+      Swal.fire({
+        title: 'Pilih Item',
+        text: 'Silakan pilih item yang ingin dibeli',
+        icon: 'warning',
+        confirmButtonText: 'OK',
+        background: 'var(--secondary-color)',
+      });
+      return;
+    }
+
+    // Show order form
+    const { value: formValues } = await Swal.fire({
+      title: 'Informasi Pengiriman',
+      html: `
+        <div style="
+          text-align: left;
+          font-family: var(--main-font);
+          padding: 20px;
+          background: var(--secondary-color);
+        ">
+          <div style="margin-bottom: 20px;">
+            <label style="
+              display: block;
+              margin-bottom: 8px;
+              font-weight: var(--font-weight-semibold);
+              color: var(--grey-text);
+              font-size: var(--font-size-medium);
+            ">Nama Penerima *</label>
+            <input
+              id="nama_penerima"
+              placeholder="Masukkan nama penerima"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                font-size: var(--font-size-medium);
+                font-family: var(--main-font);
+                background: white;
+                color: var(--grey-text);
+                transition: border-color 0.3s ease;
+                box-sizing: border-box;
+                margin: 0;
+              "
+              onfocus="this.style.borderColor='var(--primary-color)'"
+              onblur="this.style.borderColor='#e5e7eb'"
+            >
+          </div>
+          <div style="margin-bottom: 20px;">
+            <label style="
+              display: block;
+              margin-bottom: 8px;
+              font-weight: var(--font-weight-semibold);
+              color: var(--grey-text);
+              font-size: var(--font-size-medium);
+            ">Alamat Lengkap *</label>
+            <textarea
+              id="alamat"
+              placeholder="Masukkan alamat lengkap"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                font-size: var(--font-size-medium);
+                font-family: var(--main-font);
+                background: white;
+                color: var(--grey-text);
+                transition: border-color 0.3s ease;
+                box-sizing: border-box;
+                margin: 0;
+                height: 100px;
+                resize: vertical;
+              "
+              onfocus="this.style.borderColor='var(--primary-color)'"
+              onblur="this.style.borderColor='#e5e7eb'"
+            ></textarea>
+          </div>
+          <div style="margin-bottom: 20px;">
+            <label style="
+              display: block;
+              margin-bottom: 8px;
+              font-weight: var(--font-weight-semibold);
+              color: var(--grey-text);
+              font-size: var(--font-size-medium);
+            ">No. HP Penerima</label>
+            <input
+              id="no_hp_penerima"
+              placeholder="Masukkan nomor HP"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                font-size: var(--font-size-medium);
+                font-family: var(--main-font);
+                background: white;
+                color: var(--grey-text);
+                transition: border-color 0.3s ease;
+                box-sizing: border-box;
+                margin: 0;
+              "
+              onfocus="this.style.borderColor='var(--primary-color)'"
+              onblur="this.style.borderColor='#e5e7eb'"
+            >
+          </div>
+          <div style="margin-bottom: 20px;">
+            <label style="
+              display: block;
+              margin-bottom: 8px;
+              font-weight: var(--font-weight-semibold);
+              color: var(--grey-text);
+              font-size: var(--font-size-medium);
+            ">Catatan (Opsional)</label>
+            <textarea
+              id="catatan"
+              placeholder="Catatan tambahan"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                font-size: var(--font-size-medium);
+                font-family: var(--main-font);
+                background: white;
+                color: var(--grey-text);
+                transition: border-color 0.3s ease;
+                box-sizing: border-box;
+                margin: 0;
+                height: 80px;
+                resize: vertical;
+              "
+              onfocus="this.style.borderColor='var(--primary-color)'"
+              onblur="this.style.borderColor='#e5e7eb'"
+            ></textarea>
+          </div>
+          <div style="
+            margin-top: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          ">
+            <h4 style="
+              margin: 0 0 15px 0;
+              color: var(--primary-color);
+              font-size: var(--font-size-large);
+              font-weight: var(--font-weight-semibold);
+              font-family: var(--main-font);
+            ">Ringkasan Pesanan</h4>
+            <div style="
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 8px;
+              padding-bottom: 8px;
+              border-bottom: 1px solid #f3f4f6;
+            ">
+              <span style="
+                color: var(--grey-text);
+                font-size: var(--font-size-medium);
+                font-family: var(--main-font);
+              ">Total Item:</span>
+              <span style="
+                color: var(--grey-text);
+                font-size: var(--font-size-medium);
+                font-weight: var(--font-weight-semibold);
+                font-family: var(--main-font);
+              ">${selectedItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
+            </div>
+            <div style="
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 0;
+            ">
+              <span style="
+                color: var(--grey-text);
+                font-size: var(--font-size-medium);
+                font-family: var(--main-font);
+              ">Total Harga:</span>
+              <span style="
+                color: var(--primary-color);
+                font-size: var(--font-size-large);
+                font-weight: var(--font-weight-bold);
+                font-family: var(--main-font);
+              ">Rp. ${selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString('id-ID')}</span>
+            </div>
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: isProcessingOrder ? 'Memproses...' : 'Pesan via WhatsApp',
+      cancelButtonText: 'Batal',
+      allowOutsideClick: !isProcessingOrder,
+      allowEscapeKey: !isProcessingOrder,
+      background: 'var(--secondary-color)',
+      customClass: {
+        popup: 'checkout-form-popup',
+        title: 'checkout-form-title',
+        confirmButton: 'checkout-form-confirm',
+        cancelButton: 'checkout-form-cancel'
+      },
+      preConfirm: () => {
+        const nama_penerima = (document.getElementById('nama_penerima') as HTMLInputElement).value;
+        const alamat = (document.getElementById('alamat') as HTMLTextAreaElement).value;
+        const no_hp_penerima = (document.getElementById('no_hp_penerima') as HTMLInputElement).value;
+        const catatan = (document.getElementById('catatan') as HTMLTextAreaElement).value;
+
+        if (!nama_penerima || !alamat) {
+          Swal.showValidationMessage('Nama penerima dan alamat harus diisi');
+          return false;
+        }
+
+        return {
+          nama_penerima,
+          alamat,
+          no_hp_penerima,
+          catatan
+        };
+      }
+    });
+
+    if (!formValues) return;
+
+    setIsProcessingOrder(true);
+
+    try {
+      // First, create the order in the database
+      const response = await fetch('/order/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        },
+        body: JSON.stringify({
+          ...formValues,
+          selected_items: selectedItems.map(item => ({
+            product_id: parseInt(item.id),
+            quantity: item.quantity,
+            price: item.price
+          })),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Gagal membuat pesanan');
+      }
+
+      // Generate WhatsApp message with order ID
+      const totalAmount = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const totalQty = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
+
+      let message = `PESANAN BARU\n`;
+      message += `ID Pesanan: #${data.order_id}\n\n`;
+      message += `Nama Penerima: ${formValues.nama_penerima}\n`;
+      message += `Alamat: ${formValues.alamat}\n`;
+      if (formValues.no_hp_penerima) {
+        message += `No. HP: ${formValues.no_hp_penerima}\n`;
+      }
+      if (formValues.catatan) {
+        message += `Catatan: ${formValues.catatan}\n`;
+      }
+      message += `\nDETAIL PESANAN:\n`;
+
+      selectedItems.forEach((item, index) => {
+        const itemTotal = item.price * item.quantity;
+        message += `${index + 1}. ${item.name}\n`;
+        message += `   Jumlah: ${item.quantity} x Rp. ${item.price.toLocaleString('id-ID')}\n`;
+        message += `   Subtotal: Rp. ${itemTotal.toLocaleString('id-ID')}\n\n`;
+      });
+
+      message += `RINGKASAN PESANAN:\n`;
+      message += `Total Item: ${totalQty}\n`;
+      message += `Total Harga: Rp. ${totalAmount.toLocaleString('id-ID')}\n\n`;
+      message += `Mohon konfirmasi pesanan ini. Terima kasih.`;
+
+      // Open WhatsApp with the message
+      const whatsappUrl = `https://wa.me/62895360022327?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+
+      // Show success message
+      Swal.fire({
+        title: 'Pesanan Berhasil Dibuat!',
+        html: `
+          <div style="text-align: center; font-family: var(--main-font);">
+            <p style="color: var(--grey-text); margin: 10px 0;">ID Pesanan: #${data.order_id}</p>
+            <p style="color: var(--grey-text); margin: 10px 0;">Pesanan telah disimpan dan WhatsApp akan terbuka untuk konfirmasi</p>
+          </div>
+        `,
+        icon: 'success',
+        confirmButtonText: 'Lihat Riwayat Pesanan',
+        showCancelButton: true,
+        cancelButtonText: 'Tutup',
+        background: 'var(--secondary-color)',
+        customClass: {
+          popup: 'checkout-success-popup',
+          title: 'checkout-success-title'
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.visit('/history');
+        } else {
+          // Refresh the page to update cart
+          window.location.reload();
+        }
+      });
+
+    } catch (error) {
+      console.error('Error creating order:', error);
+      Swal.fire({
+        title: 'Error',
+        text: error instanceof Error ? error.message : 'Terjadi kesalahan saat membuat pesanan',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        background: 'var(--secondary-color)',
+      });
+    } finally {
+      setIsProcessingOrder(false);
+    }
+  };
+
+  // Calculate totals from current cart state
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const selectedItems = cartItems.filter(item => item.checked);
+  const selectedTotalItems = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
+  const selectedTotalPrice = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
     <div
@@ -725,34 +1024,55 @@ export default function Checkout() {
               paddingRight: '10px'
             }}
           >
-            {ontItems.length > 0 && (
-              <CategorySection
-                title="Optical Network Terminal"
-                items={ontItems}
-                onQuantityChange={handleQuantityChange}
-                onProductCheckboxChange={handleProductCheckboxChange}
-                isChecked={ontChecked}
-                onCategoryCheckboxChange={handleCategoryCheckboxChange}
-              />
-            )}
-
-            {oltItems.length > 0 && (
-              <CategorySection
-                title="Optical Line Terminal"
-                items={oltItems}
-                onQuantityChange={handleQuantityChange}
-                onProductCheckboxChange={handleProductCheckboxChange}
-                isChecked={oltChecked}
-                onCategoryCheckboxChange={handleCategoryCheckboxChange}
-              />
+            {cartItems.length > 0 ? (
+              categories.map(category => {
+                const categoryItems = cartItems.filter(item => item.category === category);
+                return categoryItems.length > 0 ? (
+                  <CategorySection
+                    key={category}
+                    title={category}
+                    items={categoryItems}
+                    onQuantityChange={handleQuantityChange}
+                    onProductCheckboxChange={handleProductCheckboxChange}
+                    isChecked={categoryCheckedStates[category] || false}
+                    onCategoryCheckboxChange={handleCategoryCheckboxChange}
+                  />
+                ) : null;
+              })
+            ) : (
+              <div
+                className="text-center py-12"
+                style={{
+                  fontFamily: 'var(--main-font)',
+                  fontSize: 'var(--font-size-large)',
+                  color: 'var(--grey-text)'
+                }}
+              >
+                <div className="flex flex-col items-center gap-4">
+                  <img
+                    src="/icons/shopping-cart.png"
+                    alt="Empty Cart"
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      opacity: 0.5
+                    }}
+                  />
+                  <p>Keranjang belanja kosong</p>
+                  <p style={{ fontSize: 'var(--font-size-medium)', color: 'var(--grey-text)', opacity: 0.7 }}>
+                    Silakan tambahkan produk ke keranjang terlebih dahulu
+                  </p>
+                </div>
+              </div>
             )}
           </div>
         </section>
 
         <OrderSummary
-          totalItems={totalItems}
-          totalPrice={totalPrice}
+          totalItems={selectedTotalItems}
+          totalPrice={selectedTotalPrice}
           onPayNow={handlePayNow}
+          isProcessingOrder={isProcessingOrder}
         />
       </main>
 

@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
+import { StockBadge } from '@/components/admin/StockBadge';
 
 interface Product {
     id: number;
@@ -15,31 +17,39 @@ interface LowStockProductsProps {
 
 export function LowStockProducts({ products, className }: LowStockProductsProps) {
     return (
-        <Card className={className}>
-            <CardHeader>
-                <CardTitle>Low Stock Products</CardTitle>
+        <Card className={cn('border-2 border-orange-500/20 shadow-lg', className)}>
+            <CardHeader className="bg-gradient-to-r from-orange-600/10 to-red-600/10">
+                <CardTitle className="text-light-text flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-orange-500 animate-pulse"></div>
+                    Low Stock Products
+                </CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {products.map((product) => (
+                    {products && Array.isArray(products) ? products.map((product) => (
                         <div key={product.id} className="flex items-center justify-between border-b pb-2">
                             <div>
-                                <div className="font-medium">{product.nama_produk}</div>
-                                <div className="text-xs text-muted-foreground">{product.brand_produk}</div>
+                                <div className="font-medium text-light-text">{product.nama_produk}</div>
+                                <div className="text-xs text-light-text opacity-70">{product.brand_produk || 'N/A'}</div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="text-red-500 font-bold">{product.stock_produk}</div>
+                            <div className="flex items-center gap-3">
+                                <StockBadge
+                                    stock={product.stock_produk}
+                                    size="sm"
+                                    showIcon={true}
+                                    showText={true}
+                                />
                                 <Link
-                                    href={`/products/${product.id}/edit`}
-                                    className="text-xs text-blue-500 hover:underline"
+                                    href={`/admin/products/${product.id}/edit`}
+                                    className="text-xs px-2 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
                                 >
                                     Restock
                                 </Link>
                             </div>
                         </div>
-                    ))}
-                    {products.length === 0 && (
-                        <div className="text-center text-muted-foreground py-4">
+                    )) : null}
+                    {(!products || products.length === 0) && (
+                        <div className="text-center text-light-text opacity-70 py-4">
                             No low stock products
                         </div>
                     )}

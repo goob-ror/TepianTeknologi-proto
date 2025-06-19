@@ -1,16 +1,33 @@
 import { useState, useEffect, useRef } from 'react';
+import { router } from '@inertiajs/react';
+import { Product } from '../types';
+import { getProductImage, isNewProduct, getDiscountPercentage, getEffectivePrice, formatPrice } from '../utils/productUtils';
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  isNew?: boolean;
-  image: string;
+interface CatalogSectionProps {
+  products: {
+    data: Product[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{
+      url: string | null;
+      label: string;
+      active: boolean;
+    }>;
+  };
+  filters: {
+    category_id?: string;
+    brand_id?: string;
+    price_min?: string;
+    price_max?: string;
+    search?: string;
+    sort_by?: string;
+    sort_order?: string;
+  };
 }
 
-export default function CatalogSection() {
+export default function CatalogSection({ products, filters }: CatalogSectionProps) {
   // Add CSS animations
   const dropdownAnimationStyles = `
     @keyframes dropdownFadeIn {
@@ -56,48 +73,73 @@ export default function CatalogSection() {
   const [isPriceFilterOpen, setIsPriceFilterOpen] = useState(false);
   const [selectedPriceFilter, setSelectedPriceFilter] = useState('Semua Harga');
   const [selectedPriceRange, setSelectedPriceRange] = useState('price-all');
-  const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const productsPerPage = 8;
+  // Initialize price filter based on current filters
+  useEffect(() => {
+    if (filters.price_min && filters.price_max) {
+      const min = parseInt(filters.price_min);
+      const max = parseInt(filters.price_max);
 
-  const products: Product[] = [
-    { id: 1, name: 'Nama Product', price: 123456, originalPrice: 234567, discount: 30, image: '/icons/product.png' },
-    { id: 2, name: 'Nama Product', price: 123456, image: '/icons/product.png' },
-    { id: 3, name: 'Nama Product', price: 123456, isNew: true, image: '/icons/product.png' },
-    { id: 4, name: 'Nama Product', price: 150000, originalPrice: 200000, discount: 25, image: '/icons/product.png' },
-    { id: 5, name: 'Nama Product', price: 450000, isNew: true, image: '/icons/product.png' },
-    { id: 6, name: 'Nama Product', price: 175000, image: '/icons/product.png' },
-    { id: 7, name: 'Nama Product', price: 300000, originalPrice: 500000, discount: 40, image: '/icons/product.png' },
-    { id: 8, name: 'Nama Product', price: 325000, image: '/icons/product.png' },
-    { id: 9, name: 'Nama Product', price: 275000, isNew: true, image: '/icons/product.png' },
-    { id: 10, name: 'Nama Product', price: 340000, originalPrice: 400000, discount: 15, image: '/icons/product.png' },
-    { id: 11, name: 'Nama Product', price: 225000, image: '/icons/product.png' },
-    { id: 12, name: 'Nama Product', price: 350000, isNew: true, image: '/icons/product.png' },
-    { id: 13, name: 'Nama Product', price: 480000, originalPrice: 600000, discount: 20, image: '/icons/product.png' },
-    { id: 14, name: 'Nama Product', price: 425000, image: '/icons/product.png' },
-    { id: 15, name: 'Nama Product', price: 375000, isNew: true, image: '/icons/product.png' }
-  ];
+      if (min === 0 && max === 1000000) {
+        setSelectedPriceFilter('Rp 0 - Rp 1.000.000');
+        setSelectedPriceRange('price-range1');
+      } else if (min === 1000000 && max === 5000000) {
+        setSelectedPriceFilter('Rp 1.000.000 - Rp 5.000.000');
+        setSelectedPriceRange('price-range2');
+      } else if (min === 5000000 && max === 10000000) {
+        setSelectedPriceFilter('Rp 5.000.000 - Rp 10.000.000');
+        setSelectedPriceRange('price-range3');
+      } else {
+        setSelectedPriceFilter(`Rp ${min.toLocaleString('id-ID')} - Rp ${max.toLocaleString('id-ID')}`);
+        setSelectedPriceRange('custom');
+      }
+    } else {
+      setSelectedPriceFilter('Semua Harga');
+      setSelectedPriceRange('price-all');
+    }
+  }, [filters.price_min, filters.price_max]);
 
-  const formatPrice = (price: number) => {
-    return `Rp. ${price.toLocaleString('id-ID')}`;
-  };
+
 
   const handlePriceRangeChange = (value: string, label: string) => {
     setSelectedPriceRange(value);
     setSelectedPriceFilter(label);
     setIsPriceFilterOpen(false);
+
+    // Apply the filter by navigating with new parameters
+    const currentParams = new URLSearchParams(window.location.search);
+
+    if (value === 'price-all') {
+      currentParams.delete('price_min');
+      currentParams.delete('price_max');
+    } else if (value === 'price-range1') {
+      currentParams.set('price_min', '0');
+      currentParams.set('price_max', '1000000');
+    } else if (value === 'price-range2') {
+      currentParams.set('price_min', '1000000');
+      currentParams.set('price_max', '5000000');
+    } else if (value === 'price-range3') {
+      currentParams.set('price_min', '5000000');
+      currentParams.set('price_max', '10000000');
+    }
+
+    router.get('/katalog', Object.fromEntries(currentParams), {
+      preserveState: true,
+      preserveScroll: true,
+    });
   };
 
-  // Calculate pagination
-  const totalPages = Math.ceil(products.length / productsPerPage);
-  const startIndex = (currentPage - 1) * productsPerPage;
-  const endIndex = startIndex + productsPerPage;
-  const currentProducts = products.slice(startIndex, endIndex);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handlePageChange = (url: string | null) => {
+    if (url) {
+      router.get(url, {}, {
+        preserveState: true,
+        preserveScroll: true,
+      });
+    }
   };
+
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -139,7 +181,7 @@ export default function CatalogSection() {
             >
               <button className="dropdown-button" onClick={() => setIsPriceFilterOpen(!isPriceFilterOpen)}>
                 <span className="dropdown-icon">
-                  <p id="selected-price-filter">{selectedPriceFilter}</p>
+                  <p id="selected-price-filter" style={{ fontSize: '12px' }}>{selectedPriceFilter}</p>
                   <img
                     src="/icons/dropdown-arrow.png"
                     className={`dropdown-button-arrow ${isPriceFilterOpen ? 'rotate-180' : ''}`}
@@ -184,7 +226,7 @@ export default function CatalogSection() {
                       checked={selectedPriceRange === 'price-all'}
                       onChange={() => handlePriceRangeChange('price-all', 'Semua Harga')}
                     />
-                    <label htmlFor="price-all">Semua Harga</label>
+                    <label htmlFor="price-all" style={{ fontSize: '12px' }}>Semua Harga</label>
                   </div>
                   <div
                     className="checkbox-item"
@@ -208,7 +250,7 @@ export default function CatalogSection() {
                       checked={selectedPriceRange === 'price-range1'}
                       onChange={() => handlePriceRangeChange('price-range1', 'Rp 0 - Rp 1.000.000')}
                     />
-                    <label htmlFor="price-range1">Rp 0 - Rp 1.000.000</label>
+                    <label htmlFor="price-range1" style={{ fontSize: '12px' }}>Rp 0 - Rp 1.000.000</label>
                   </div>
                   <div
                     className="checkbox-item"
@@ -232,7 +274,7 @@ export default function CatalogSection() {
                       checked={selectedPriceRange === 'price-range2'}
                       onChange={() => handlePriceRangeChange('price-range2', 'Rp 1.000.000 - Rp 5.000.000')}
                     />
-                    <label htmlFor="price-range2">Rp 1.000.000 - Rp 5.000.000</label>
+                    <label htmlFor="price-range2" style={{ fontSize: '12px' }}>Rp 1.000.000 - Rp 5.000.000</label>
                   </div>
                   <div
                     className="checkbox-item"
@@ -256,7 +298,7 @@ export default function CatalogSection() {
                       checked={selectedPriceRange === 'price-range3'}
                       onChange={() => handlePriceRangeChange('price-range3', 'Rp 5.000.000 - Rp 10.000.000')}
                     />
-                    <label htmlFor="price-range3">Rp 5.000.000 - Rp 10.000.000</label>
+                    <label htmlFor="price-range3" style={{ fontSize: '12px' }}>Rp 5.000.000 - Rp 10.000.000</label>
                   </div>
                 </div>
                 <div className="custom-price-range">
@@ -293,61 +335,74 @@ export default function CatalogSection() {
       </div>
 
       <div className="katalog-products">
-        {currentProducts.map((product) => (
-          <div key={product.id} className="products" style={{
-            position: 'relative'
-          }}>
-            <a href="">
-              <img src={product.image} alt={product.name} />
-              {product.discount && (
-                <div style={{
-                  position: 'absolute',
-                  top: '0',
-                  left: '0',
-                  backgroundColor: 'var(--primary-color)',
-                  color: 'var(--light-text)',
-                  fontSize: '14px',
-                  padding: '1px 1px'
-                 }}>
-                  <h2>{product.discount}%</h2>
-                </div>
-              )}
-              <h1>
-                {product.name}
-                {product.isNew && <div style={{
-                  backgroundColor: 'var(--primary-color)',
-                  color: 'var(--light-text)',
-                  padding: '2px 6px',
-                  fontSize: '10px',
-                  fontWeight: 'var(--font-weight-regular)',
-                  borderRadius: '4px'
-                 }}>NEW</div>}
-              </h1>
-              {product.originalPrice && (
-                <p className="diskon-price">{formatPrice(product.originalPrice)}</p>
-              )}
-              <p>
-                {formatPrice(product.price)}
-                <span>
-                  <img src="/icons/shopping-cart.png" className="price-cart" alt="Cart" />
-                </span>
-              </p>
-            </a>
-          </div>
-        ))}
+        {products.data.map((product) => {
+          const discountPercentage = getDiscountPercentage(product);
+          const effectivePrice = getEffectivePrice(product);
+          const isNew = isNewProduct(product);
+
+          return (
+            <div key={product.id} className="products" style={{
+              position: 'relative'
+            }}>
+              <a href={`/detail-produk/${product.id}`}>
+                <img src={getProductImage(product)} alt={product.nama_produk} />
+                {discountPercentage > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    backgroundColor: 'var(--primary-color)',
+                    color: 'var(--light-text)',
+                    fontSize: '14px',
+                    padding: '1px 1px'
+                   }}>
+                    <h2>{discountPercentage}%</h2>
+                  </div>
+                )}
+                <h1>
+                  {product.nama_produk}
+                  {isNew && <div style={{
+                    backgroundColor: 'var(--primary-color)',
+                    color: 'var(--light-text)',
+                    padding: '2px 6px',
+                    fontSize: '10px',
+                    fontWeight: 'var(--font-weight-regular)',
+                    borderRadius: '4px'
+                   }}>NEW</div>}
+                </h1>
+                {product.is_diskon && product.harga_diskon && (
+                  <p className="diskon-price">{formatPrice(product.harga)}</p>
+                )}
+                <p>
+                  {formatPrice(effectivePrice)}
+                  <span>
+                    <img src="/icons/shopping-cart.png" className="price-cart" alt="Cart" />
+                  </span>
+                </p>
+              </a>
+            </div>
+          );
+        })}
       </div>
 
-      {totalPages > 1 && (
+      {products.last_page > 1 && (
         <div className="pagination">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => handlePageChange(page)}
-              className={`page-btn ${currentPage === page ? 'active' : ''}`}
-            >
-              {page}
-            </button>
-          ))}
+          {products.links.map((link, index) => {
+            // Skip the "Previous" and "Next" text links
+            if (link.label === '&laquo; Previous' || link.label === 'Next &raquo;') {
+              return null;
+            }
+
+            return (
+              <button
+                key={index}
+                onClick={() => handlePageChange(link.url)}
+                className={`page-btn ${link.active ? 'active' : ''}`}
+                disabled={!link.url}
+                dangerouslySetInnerHTML={{ __html: link.label }}
+              />
+            );
+          })}
         </div>
       )}
     </div>

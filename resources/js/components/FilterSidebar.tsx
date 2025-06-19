@@ -1,10 +1,28 @@
 import { useState } from 'react';
+import { router } from '@inertiajs/react';
+import { Category, Brand } from '../types';
 
 interface FilterSidebarProps {
   height?: string;
+  categories?: Category[];
+  brands?: Brand[];
+  filters?: {
+    category_id?: string;
+    brand_id?: string;
+    price_min?: string;
+    price_max?: string;
+    search?: string;
+    sort_by?: string;
+    sort_order?: string;
+  };
 }
 
-export default function FilterSidebar({ height = '850px' }: FilterSidebarProps) {
+export default function FilterSidebar({
+  height = '850px',
+  categories = [],
+  brands = [],
+  filters = {}
+}: FilterSidebarProps) {
   // Enhanced CSS animations for filter dropdowns
   const filterAnimationStyles = `
     @keyframes filterSlideIn {
@@ -58,8 +76,6 @@ export default function FilterSidebar({ height = '850px' }: FilterSidebarProps) 
   `;
 
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
 
   const toggleFilter = (filterId: string) => {
     setActiveFilters(prev =>
@@ -70,29 +86,33 @@ export default function FilterSidebar({ height = '850px' }: FilterSidebarProps) 
   };
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
-    if (categoryId === 'all-category') {
-      setSelectedCategories(checked ? ['all-category'] : []);
+    const currentParams = new URLSearchParams(window.location.search);
+
+    if (categoryId === 'all' || !checked) {
+      currentParams.delete('category_id');
     } else {
-      setSelectedCategories(prev => {
-        const newCategories = checked
-          ? [...prev.filter(id => id !== 'all-category'), categoryId]
-          : prev.filter(id => id !== categoryId);
-        return newCategories;
-      });
+      currentParams.set('category_id', categoryId);
     }
+
+    router.get('/katalog', Object.fromEntries(currentParams), {
+      preserveState: true,
+      preserveScroll: true,
+    });
   };
 
   const handleBrandChange = (brandId: string, checked: boolean) => {
-    if (brandId === 'all-brand') {
-      setSelectedBrands(checked ? ['all-brand'] : []);
+    const currentParams = new URLSearchParams(window.location.search);
+
+    if (brandId === 'all' || !checked) {
+      currentParams.delete('brand_id');
     } else {
-      setSelectedBrands(prev => {
-        const newBrands = checked
-          ? [...prev.filter(id => id !== 'all-brand'), brandId]
-          : prev.filter(id => id !== brandId);
-        return newBrands;
-      });
+      currentParams.set('brand_id', brandId);
     }
+
+    router.get('/katalog', Object.fromEntries(currentParams), {
+      preserveState: true,
+      preserveScroll: true,
+    });
   };
 
   return (
@@ -177,17 +197,17 @@ export default function FilterSidebar({ height = '850px' }: FilterSidebarProps) 
               }}
             >
               <input
-                type="checkbox"
+                type="radio"
                 id="all-category"
                 name="category"
-                checked={selectedCategories.includes('all-category')}
-                onChange={(e) => handleCategoryChange('all-category', e.target.checked)}
+                checked={!filters.category_id}
+                onChange={(e) => handleCategoryChange('all', e.target.checked)}
                 className="appearance-none w-4.5 h-4.5 border-2 rounded mr-2.5 cursor-pointer relative flex-shrink-0"
                 style={{
                   borderColor: 'var(--primary-color)',
-                  backgroundColor: selectedCategories.includes('all-category') ? 'var(--primary-color)' : 'transparent',
+                  backgroundColor: !filters.category_id ? 'var(--primary-color)' : 'transparent',
                   transition: 'all 0.3s ease',
-                  animation: selectedCategories.includes('all-category') ? 'checkboxPop 0.3s ease' : 'none'
+                  animation: !filters.category_id ? 'checkboxPop 0.3s ease' : 'none'
                 }}
               />
               <label
@@ -202,88 +222,50 @@ export default function FilterSidebar({ height = '850px' }: FilterSidebarProps) 
                 Semua Kategori
               </label>
             </div>
-            <div
-              className="checkbox-item flex items-center mb-3 px-1"
-              style={{
-                animation: activeFilters.includes('category') ? 'itemFadeIn 0.4s ease-out 0.2s both' : 'none',
-                transition: 'transform 0.2s ease, background-color 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateX(5px)';
-                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateX(0)';
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <input
-                type="checkbox"
-                id="ont"
-                name="category"
-                checked={selectedCategories.includes('ont')}
-                onChange={(e) => handleCategoryChange('ont', e.target.checked)}
-                className="appearance-none w-4.5 h-4.5 border-2 rounded mr-2.5 cursor-pointer relative flex-shrink-0"
+            {categories.map((category, index) => (
+              <div
+                key={category.id}
+                className="checkbox-item flex items-center mb-3 px-1"
                 style={{
-                  borderColor: 'var(--primary-color)',
-                  backgroundColor: selectedCategories.includes('ont') ? 'var(--primary-color)' : 'transparent',
-                  transition: 'all 0.3s ease',
-                  animation: selectedCategories.includes('ont') ? 'checkboxPop 0.3s ease' : 'none'
+                  animation: activeFilters.includes('category') ? `itemFadeIn 0.4s ease-out ${0.2 + index * 0.1}s both` : 'none',
+                  transition: 'transform 0.2s ease, background-color 0.2s ease'
                 }}
-              />
-              <label
-                htmlFor="ont"
-                className="cursor-pointer flex-grow whitespace-nowrap overflow-hidden text-ellipsis hover:text-blue-600 transition-colors"
-                style={{
-                  fontFamily: 'var(--main-font)',
-                  fontSize: 'var(--font-size-small)',
-                  color: 'var(--grey-text)'
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateX(5px)';
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateX(0)';
+                  e.currentTarget.style.backgroundColor = 'transparent';
                 }}
               >
-                Optical Network Terminal
-              </label>
-            </div>
-            <div
-              className="checkbox-item flex items-center mb-0 px-1"
-              style={{
-                animation: activeFilters.includes('category') ? 'itemFadeIn 0.4s ease-out 0.3s both' : 'none',
-                transition: 'transform 0.2s ease, background-color 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateX(5px)';
-                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateX(0)';
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <input
-                type="checkbox"
-                id="olt"
-                name="category"
-                checked={selectedCategories.includes('olt')}
-                onChange={(e) => handleCategoryChange('olt', e.target.checked)}
-                className="appearance-none w-4.5 h-4.5 border-2 rounded mr-2.5 cursor-pointer relative flex-shrink-0"
-                style={{
-                  borderColor: 'var(--primary-color)',
-                  backgroundColor: selectedCategories.includes('olt') ? 'var(--primary-color)' : 'transparent',
-                  transition: 'all 0.3s ease',
-                  animation: selectedCategories.includes('olt') ? 'checkboxPop 0.3s ease' : 'none'
-                }}
-              />
-              <label
-                htmlFor="olt"
-                className="cursor-pointer flex-grow whitespace-nowrap overflow-hidden text-ellipsis hover:text-blue-600 transition-colors"
-                style={{
-                  fontFamily: 'var(--main-font)',
-                  fontSize: 'var(--font-size-small)',
-                  color: 'var(--grey-text)'
-                }}
-              >
-                Optical Line Terminal
-              </label>
-            </div>
+                <input
+                  type="radio"
+                  id={`category-${category.id}`}
+                  name="category"
+                  checked={filters.category_id === category.id.toString()}
+                  onChange={(e) => handleCategoryChange(category.id.toString(), e.target.checked)}
+                  className="appearance-none w-4.5 h-4.5 border-2 rounded mr-2.5 cursor-pointer relative flex-shrink-0"
+                  style={{
+                    borderColor: 'var(--primary-color)',
+                    backgroundColor: filters.category_id === category.id.toString() ? 'var(--primary-color)' : 'transparent',
+                    transition: 'all 0.3s ease',
+                    animation: filters.category_id === category.id.toString() ? 'checkboxPop 0.3s ease' : 'none'
+                  }}
+                />
+                <label
+                  htmlFor={`category-${category.id}`}
+                  className="cursor-pointer flex-grow whitespace-nowrap overflow-hidden text-ellipsis hover:text-blue-600 transition-colors"
+                  style={{
+                    fontFamily: 'var(--main-font)',
+                    fontSize: 'var(--font-size-small)',
+                    color: 'var(--grey-text)'
+                  }}
+                >
+                  {category.nama_kategori}
+                </label>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -346,17 +328,17 @@ export default function FilterSidebar({ height = '850px' }: FilterSidebarProps) 
               }}
             >
               <input
-                type="checkbox"
+                type="radio"
                 id="all-brand"
                 name="brand"
-                checked={selectedBrands.includes('all-brand')}
-                onChange={(e) => handleBrandChange('all-brand', e.target.checked)}
+                checked={!filters.brand_id}
+                onChange={(e) => handleBrandChange('all', e.target.checked)}
                 className="appearance-none w-4.5 h-4.5 border-2 rounded mr-2.5 cursor-pointer relative flex-shrink-0"
                 style={{
                   borderColor: 'var(--primary-color)',
-                  backgroundColor: selectedBrands.includes('all-brand') ? 'var(--primary-color)' : 'transparent',
+                  backgroundColor: !filters.brand_id ? 'var(--primary-color)' : 'transparent',
                   transition: 'all 0.3s ease',
-                  animation: selectedBrands.includes('all-brand') ? 'checkboxPop 0.3s ease' : 'none'
+                  animation: !filters.brand_id ? 'checkboxPop 0.3s ease' : 'none'
                 }}
               />
               <label
@@ -371,88 +353,50 @@ export default function FilterSidebar({ height = '850px' }: FilterSidebarProps) 
                 Semua Brand
               </label>
             </div>
-            <div
-              className="checkbox-item flex items-center mb-3 px-1"
-              style={{
-                animation: activeFilters.includes('brand') ? 'itemFadeIn 0.4s ease-out 0.2s both' : 'none',
-                transition: 'transform 0.2s ease, background-color 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateX(5px)';
-                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateX(0)';
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <input
-                type="checkbox"
-                id="cdata"
-                name="brand"
-                checked={selectedBrands.includes('cdata')}
-                onChange={(e) => handleBrandChange('cdata', e.target.checked)}
-                className="appearance-none w-4.5 h-4.5 border-2 rounded mr-2.5 cursor-pointer relative flex-shrink-0"
+            {brands.map((brand, index) => (
+              <div
+                key={brand.id}
+                className="checkbox-item flex items-center mb-3 px-1"
                 style={{
-                  borderColor: 'var(--primary-color)',
-                  backgroundColor: selectedBrands.includes('cdata') ? 'var(--primary-color)' : 'transparent',
-                  transition: 'all 0.3s ease',
-                  animation: selectedBrands.includes('cdata') ? 'checkboxPop 0.3s ease' : 'none'
+                  animation: activeFilters.includes('brand') ? `itemFadeIn 0.4s ease-out ${0.2 + index * 0.1}s both` : 'none',
+                  transition: 'transform 0.2s ease, background-color 0.2s ease'
                 }}
-              />
-              <label
-                htmlFor="cdata"
-                className="cursor-pointer flex-grow whitespace-nowrap overflow-hidden text-ellipsis hover:text-blue-600 transition-colors"
-                style={{
-                  fontFamily: 'var(--main-font)',
-                  fontSize: 'var(--font-size-small)',
-                  color: 'var(--grey-text)'
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateX(5px)';
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateX(0)';
+                  e.currentTarget.style.backgroundColor = 'transparent';
                 }}
               >
-                CDATA
-              </label>
-            </div>
-            <div
-              className="checkbox-item flex items-center mb-0 px-1"
-              style={{
-                animation: activeFilters.includes('brand') ? 'itemFadeIn 0.4s ease-out 0.3s both' : 'none',
-                transition: 'transform 0.2s ease, background-color 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateX(5px)';
-                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateX(0)';
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <input
-                type="checkbox"
-                id="zne"
-                name="brand"
-                checked={selectedBrands.includes('zne')}
-                onChange={(e) => handleBrandChange('zne', e.target.checked)}
-                className="appearance-none w-4.5 h-4.5 border-2 rounded mr-2.5 cursor-pointer relative flex-shrink-0"
-                style={{
-                  borderColor: 'var(--primary-color)',
-                  backgroundColor: selectedBrands.includes('zne') ? 'var(--primary-color)' : 'transparent',
-                  transition: 'all 0.3s ease',
-                  animation: selectedBrands.includes('zne') ? 'checkboxPop 0.3s ease' : 'none'
-                }}
-              />
-              <label
-                htmlFor="zne"
-                className="cursor-pointer flex-grow whitespace-nowrap overflow-hidden text-ellipsis hover:text-blue-600 transition-colors"
-                style={{
-                  fontFamily: 'var(--main-font)',
-                  fontSize: 'var(--font-size-small)',
-                  color: 'var(--grey-text)'
-                }}
-              >
-                ZNE
-              </label>
-            </div>
+                <input
+                  type="radio"
+                  id={`brand-${brand.id}`}
+                  name="brand"
+                  checked={filters.brand_id === brand.id.toString()}
+                  onChange={(e) => handleBrandChange(brand.id.toString(), e.target.checked)}
+                  className="appearance-none w-4.5 h-4.5 border-2 rounded mr-2.5 cursor-pointer relative flex-shrink-0"
+                  style={{
+                    borderColor: 'var(--primary-color)',
+                    backgroundColor: filters.brand_id === brand.id.toString() ? 'var(--primary-color)' : 'transparent',
+                    transition: 'all 0.3s ease',
+                    animation: filters.brand_id === brand.id.toString() ? 'checkboxPop 0.3s ease' : 'none'
+                  }}
+                />
+                <label
+                  htmlFor={`brand-${brand.id}`}
+                  className="cursor-pointer flex-grow whitespace-nowrap overflow-hidden text-ellipsis hover:text-blue-600 transition-colors"
+                  style={{
+                    fontFamily: 'var(--main-font)',
+                    fontSize: 'var(--font-size-small)',
+                    color: 'var(--grey-text)'
+                  }}
+                >
+                  {brand.nama_brand}
+                </label>
+              </div>
+            ))}
           </div>
         </div>
       </div>

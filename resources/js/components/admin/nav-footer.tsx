@@ -14,7 +14,7 @@ export function NavFooter({
         <SidebarGroup {...props} className={`group-data-[collapsible=icon]:p-0 ${className || ''}`}>
             <SidebarGroupContent>
                 <SidebarMenu>
-                    {items.map((item) => (
+                    {items && Array.isArray(items) ? items.map((item) => (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
                                 asChild
@@ -26,7 +26,7 @@ export function NavFooter({
                                 </a>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
-                    ))}
+                    )) : null}
                 </SidebarMenu>
             </SidebarGroupContent>
         </SidebarGroup>

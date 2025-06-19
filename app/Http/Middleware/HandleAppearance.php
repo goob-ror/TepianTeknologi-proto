@@ -16,7 +16,16 @@ class HandleAppearance
      */
     public function handle(Request $request, Closure $next): Response
     {
-        View::share('appearance', $request->cookie('appearance') ?? 'system');
+        // Check if this is an admin route
+        $isAdminRoute = $request->is('admin/*') || $request->is('admin');
+
+        if ($isAdminRoute) {
+            // Admin pages are always in dark mode
+            View::share('appearance', 'dark');
+        } else {
+            // Regular pages use the user's preference
+            View::share('appearance', $request->cookie('appearance') ?? 'system');
+        }
 
         return $next($request);
     }

@@ -75,7 +75,7 @@ export default function ViewCategories({ categories }: Props) {
                 <tbody className="divide-y divide-border">
                   {categories.length > 0 ? (
                     categories.map((category) => (
-                      <tr key={category.id} className="hover:bg-muted/50">
+                      <tr key={category.id} className="hover:bg-muted/30 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap text-sm">{category.id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{category.jenis_kategori}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">

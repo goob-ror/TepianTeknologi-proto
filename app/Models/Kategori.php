@@ -10,13 +10,17 @@ class Kategori extends Model
     use HasFactory;
 
     /**
+     * The table associated with the model.
+     */
+    protected $table = 'kategori_produk';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
-        'jenis_kategori',
-        'deskripsi',
+        'nama_kategori',
     ];
 
     /**

@@ -19,14 +19,12 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'fullname',
+        'username',
+        'nama_lengkap',
         'email',
+        'no_hp',
         'password',
-        'phone',
-        'address',
         'role',
-        'isDeleted',
     ];
 
     /**
@@ -36,8 +34,16 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
-        'isDeleted',
         'remember_token',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'name',
     ];
 
     /**
@@ -52,5 +58,38 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
         ];
+    }
+
+    /**
+     * Get the user's name attribute.
+     * Maps nama_lengkap to name for frontend compatibility.
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->nama_lengkap ?? '';
+    }
+
+    /**
+     * Get the orders for the user.
+     */
+    public function orders()
+    {
+        return $this->hasMany(Pesanan::class, 'user_id');
+    }
+
+    /**
+     * Get the payments validated by the user.
+     */
+    public function validatedPayments()
+    {
+        return $this->hasMany(Pembayaran::class, 'validated_by');
+    }
+
+    /**
+     * Check if user is admin.
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
     }
 }

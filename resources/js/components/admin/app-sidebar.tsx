@@ -14,9 +14,8 @@ import {
     ShoppingCart,
     BarChart3,
     UserCog,
-    KeyRound,
-    Palette,
-    Store
+    Store,
+    Award
 } from 'lucide-react';
 import AppLogo from '../app-logo';
 
@@ -28,7 +27,7 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
 
-    // E-commerce Section
+    // E-commerce Management Section
     {
         title: 'Products',
         href: '/admin/products',
@@ -40,7 +39,7 @@ const mainNavItems: NavItem[] = [
             },
             {
                 title: 'Add Product',
-                href: '/admin/products/add',
+                href: '/admin/products/create',
             },
         ],
     },
@@ -55,7 +54,22 @@ const mainNavItems: NavItem[] = [
             },
             {
                 title: 'Add Category',
-                href: '/admin/categories/add',
+                href: '/admin/categories/create',
+            },
+        ],
+    },
+    {
+        title: 'Brands',
+        href: '/admin/brands',
+        icon: Award,
+        dropdown: [
+            {
+                title: 'All Brands',
+                href: '/admin/brands',
+            },
+            {
+                title: 'Add Brand',
+                href: '/admin/brands/create',
             },
         ],
     },
@@ -86,13 +100,13 @@ const mainNavItems: NavItem[] = [
                 href: '/admin/users',
             },
             {
-                title: 'Add User',
-                href: '/admin/users/add',
+                title: 'Create User',
+                href: '/admin/users/create',
             },
         ],
     },
     {
-        title: 'Admins',
+        title: 'Administrators',
         href: '/admin/admins',
         icon: UserCog,
         dropdown: [
@@ -101,62 +115,59 @@ const mainNavItems: NavItem[] = [
                 href: '/admin/admins',
             },
             {
-                title: 'Add Admin',
-                href: '/admin/admins/add',
+                title: 'Create Admin',
+                href: '/admin/admins/create',
             },
         ],
     },
 
-    // Reports Section
-    {
-        title: 'Reports',
-        href: '/admin/reports',
-        icon: BarChart3,
-        dropdown: [
-            {
-                title: 'Sales Report',
-                href: '/admin/reports/sales',
-            },
-            {
-                title: 'Inventory Report',
-                href: '/admin/reports/inventory',
-            },
-        ],
-    },
+    // Note: Reports section coming soon
+    // {
+    //     title: 'Reports',
+    //     href: '/admin/reports',
+    //     icon: BarChart3,
+    //     dropdown: [
+    //         {
+    //             title: 'Sales Report',
+    //             href: '/admin/reports/sales',
+    //         },
+    //         {
+    //             title: 'Inventory Report',
+    //             href: '/admin/reports/inventory',
+    //         },
+    //     ],
+    // },
 
     // Settings Section
     {
         title: 'Settings',
-        href: '/admin/settings',
+        href: '/admin/settings/profile',
         icon: Settings,
         dropdown: [
             {
-                title: 'Profile',
+                title: 'Profile Settings',
                 href: '/admin/settings/profile',
             },
             {
-                title: 'Password',
+                title: 'Change Password',
                 href: '/admin/settings/password',
-            },
-            {
-                title: 'Appearance',
-                href: '/admin/settings/appearance',
             },
         ],
     },
 ];
 
 const footerNavItems: NavItem[] = [
-    {
-        title: 'Help Center',
-        href: '/admin/help',
-        icon: BookOpen,
-    },
-    {
-        title: 'Documentation',
-        href: '/admin/docs',
-        icon: Folder,
-    },
+    // Note: Help and documentation pages coming soon
+    // {
+    //     title: 'Help Center',
+    //     href: '/admin/help',
+    //     icon: BookOpen,
+    // },
+    // {
+    //     title: 'Documentation',
+    //     href: '/admin/docs',
+    //     icon: Folder,
+    // },
 ];
 
 export function AppSidebar() {

@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
+import { Product } from '../types';
+import { getProductImage, formatPrice, getEffectivePrice, getDiscountPercentage } from '../utils/productUtils';
+import { router } from '@inertiajs/react';
+import { useCart } from '../hooks/useCart';
+import Swal from 'sweetalert2';
 
-export default function DetailProductSection() {
+interface DetailProductSectionProps {
+  product: Product;
+}
+
+export default function DetailProductSection({ product }: DetailProductSectionProps) {
   // Add CSS animations for price filter dropdown
   const dropdownAnimationStyles = `
     @keyframes dropdownFadeIn {
@@ -43,15 +52,80 @@ export default function DetailProductSection() {
     }
   `;
 
+  const { addToCart } = useCart();
   const [isPriceFilterOpen, setIsPriceFilterOpen] = useState(false);
   const [selectedPriceFilter, setSelectedPriceFilter] = useState('Semua Harga');
   const [selectedPriceRange, setSelectedPriceRange] = useState('price-all');
+  const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handlePriceRangeChange = (value: string, label: string) => {
     setSelectedPriceRange(value);
     setSelectedPriceFilter(label);
     setIsPriceFilterOpen(false);
+  };
+
+  const handleAddToCart = async () => {
+    if (isAddingToCart) return;
+
+    setIsAddingToCart(true);
+
+    try {
+      // Check stock availability
+      if (product.stok < quantity) {
+        throw new Error(`Stok tidak mencukupi. Stok tersedia: ${product.stok}`);
+      }
+
+      // Prepare product data for localStorage
+      const productData = {
+        id: product.id,
+        nama_produk: product.nama_produk,
+        harga: parseFloat(product.harga),
+        harga_diskon: product.harga_diskon ? parseFloat(product.harga_diskon) : undefined,
+        is_diskon: product.is_diskon,
+        gambar: product.gambar,
+        stok: product.stok,
+        category: product.category?.nama_kategori || 'Uncategorized',
+      };
+
+      // Add to cart using localStorage
+      const result = await addToCart(productData, quantity);
+
+      if (result.success) {
+        Swal.fire({
+          title: 'Berhasil!',
+          text: result.message,
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false,
+          background: 'var(--secondary-color)',
+        });
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      Swal.fire({
+        title: 'Error',
+        text: error instanceof Error ? error.message : 'Terjadi kesalahan saat menambahkan ke keranjang',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        background: 'var(--secondary-color)',
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    // First add to cart, then redirect to checkout
+    await handleAddToCart();
+
+    // Small delay to ensure cart is updated
+    setTimeout(() => {
+      router.visit('/checkout');
+    }, 500);
   };
 
   // Close dropdown when clicking outside
@@ -156,7 +230,7 @@ export default function DetailProductSection() {
                     style={{
                       margin: 0,
                       fontFamily: 'var(--main-font)',
-                      fontSize: 'var(--font-size-medium)',
+                      fontSize: '12px',
                       color: 'var(--grey-text)'
                     }}
                   >
@@ -218,7 +292,7 @@ export default function DetailProductSection() {
                       checked={selectedPriceRange === 'price-all'}
                       onChange={() => handlePriceRangeChange('price-all', 'Semua Harga')}
                     />
-                    <label htmlFor="price-all">Semua Harga</label>
+                    <label htmlFor="price-all" style={{ fontSize: '12px' }}>Semua Harga</label>
                   </div>
                   <div
                     className="checkbox-item"
@@ -247,7 +321,7 @@ export default function DetailProductSection() {
                       checked={selectedPriceRange === 'price-range1'}
                       onChange={() => handlePriceRangeChange('price-range1', 'Rp 0 - Rp 1.000.000')}
                     />
-                    <label htmlFor="price-range1">Rp 0 - Rp 1.000.000</label>
+                    <label htmlFor="price-range1" style={{ fontSize: '12px' }}>Rp 0 - Rp 1.000.000</label>
                   </div>
                   <div
                     className="checkbox-item"
@@ -276,7 +350,7 @@ export default function DetailProductSection() {
                       checked={selectedPriceRange === 'price-range2'}
                       onChange={() => handlePriceRangeChange('price-range2', 'Rp 1.000.000 - Rp 5.000.000')}
                     />
-                    <label htmlFor="price-range2">Rp 1.000.000 - Rp 5.000.000</label>
+                    <label htmlFor="price-range2" style={{ fontSize: '12px' }}>Rp 1.000.000 - Rp 5.000.000</label>
                   </div>
                   <div
                     className="checkbox-item"
@@ -305,7 +379,7 @@ export default function DetailProductSection() {
                       checked={selectedPriceRange === 'price-range3'}
                       onChange={() => handlePriceRangeChange('price-range3', 'Rp 5.000.000 - Rp 10.000.000')}
                     />
-                    <label htmlFor="price-range3">Rp 5.000.000 - Rp 10.000.000</label>
+                    <label htmlFor="price-range3" style={{ fontSize: '12px' }}>Rp 5.000.000 - Rp 10.000.000</label>
                   </div>
                 </div>
                 <div className="custom-price-range">
@@ -375,7 +449,7 @@ export default function DetailProductSection() {
             backgroundColor: 'antiquewhite'
           }}
         >
-          <img src="/icons/product.png" alt="Product" />
+          <img src={getProductImage(product)} alt={product.nama_produk} />
         </div>
 
         <div
@@ -397,7 +471,7 @@ export default function DetailProductSection() {
                 margin: '0 0 15px 0'
               }}
             >
-              Nama Product
+              {product.nama_produk}
             </h1>
             <div
               className="detail-product-price"
@@ -409,40 +483,44 @@ export default function DetailProductSection() {
                 margin: '0 0 0 0'
               }}
             >
-              <p
-                className="diskon-price"
-                style={{
-                  fontSize: 'var(--font-size-medium)',
-                  color: '#FA766A',
-                  textDecoration: 'line-through',
-                  margin: '0 0 10px 0'
-                }}
-              >
-                Rp. 234.567
-              </p>
-              <p style={{ margin: 0 }}>Rp. 123.456</p>
-              <div
-                className="diskon-tag"
-                style={{
-                  position: 'absolute',
-                  left: '110px',
-                  top: '0',
-                  width: 'fit-content',
-                  backgroundColor: 'var(--primary-color)',
-                  color: 'var(--light-text)',
-                  padding: '1px 1px'
-                }}
-              >
-                <h2
+              {product.is_diskon && product.harga_diskon && (
+                <p
+                  className="diskon-price"
                   style={{
-                    fontSize: 'var(--font-size-small)',
-                    margin: 0,
-                    padding: '2px'
+                    fontSize: 'var(--font-size-medium)',
+                    color: '#FA766A',
+                    textDecoration: 'line-through',
+                    margin: '0 0 10px 0'
                   }}
                 >
-                  30%
-                </h2>
-              </div>
+                  {formatPrice(parseFloat(product.harga))}
+                </p>
+              )}
+              <p style={{ margin: 0 }}>{formatPrice(getEffectivePrice(product))}</p>
+              {product.is_diskon && getDiscountPercentage(product) > 0 && (
+                <div
+                  className="diskon-tag"
+                  style={{
+                    position: 'absolute',
+                    left: '110px',
+                    top: '0',
+                    width: 'fit-content',
+                    backgroundColor: 'var(--primary-color)',
+                    color: 'var(--light-text)',
+                    padding: '1px 1px'
+                  }}
+                >
+                  <h2
+                    style={{
+                      fontSize: 'var(--font-size-small)',
+                      margin: 0,
+                      padding: '2px'
+                    }}
+                  >
+                    {getDiscountPercentage(product)}%
+                  </h2>
+                </div>
+              )}
             </div>
           </div>
 
@@ -488,7 +566,7 @@ export default function DetailProductSection() {
                   color: 'var(--primary-color)',
                   fontWeight: 'var(--font-weight-semibold)'
                 }}>
-                  Brand
+                  {product.brand?.nama_brand || 'N/A'}
                 </p>
               </li>
               <li
@@ -508,11 +586,11 @@ export default function DetailProductSection() {
                   color: 'var(--primary-color)',
                   fontWeight: 'var(--font-weight-semibold)'
                 }}>
-                  Kategori
+                  {product.category?.nama_kategori || 'N/A'}
                 </p>
               </li>
               <li
-                data-label="Kode"
+                data-label="Stok"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -521,14 +599,14 @@ export default function DetailProductSection() {
                   color: 'var(--grey-text)'
                 }}
               >
-                <span style={{ width: '100px', display: 'inline-block' }}>Kode</span>
+                <span style={{ width: '100px', display: 'inline-block' }}>Stok</span>
                 <span style={{ margin: '0 5px' }}>:</span>
                 <p style={{
                   margin: 0,
-                  color: 'var(--primary-color)',
+                  color: product.stok > 10 ? 'var(--primary-color)' : product.stok > 0 ? '#FA766A' : '#FF0000',
                   fontWeight: 'var(--font-weight-semibold)'
                 }}>
-                  Kode Produk
+                  {product.stok > 0 ? `${product.stok} unit` : 'Stok habis'}
                 </p>
               </li>
             </ul>
@@ -544,7 +622,25 @@ export default function DetailProductSection() {
               margin: '50px 0 0 0'
             }}
           >
-            <a href="">
+            <button
+              onClick={handleAddToCart}
+              disabled={isAddingToCart || product.stok === 0}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: product.stok === 0 ? 'not-allowed' : 'pointer',
+                opacity: product.stok === 0 ? 0.5 : 1,
+                transition: 'transform 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                if (product.stok > 0) {
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
               <img
                 src="/icons/shopping-cart.png"
                 className="cart-product"
@@ -554,28 +650,35 @@ export default function DetailProductSection() {
                 }}
                 alt="Add to Cart"
               />
-            </a>
+            </button>
             <button
               className="buy-button"
+              onClick={handleBuyNow}
+              disabled={isAddingToCart || product.stok === 0}
               style={{
-                backgroundColor: 'var(--primary-color)',
+                backgroundColor: product.stok === 0 ? '#ccc' : 'var(--primary-color)',
                 color: 'white',
                 border: 'none',
                 padding: '10px 20px',
                 borderRadius: '6px',
-                cursor: 'pointer',
+                cursor: product.stok === 0 ? 'not-allowed' : 'pointer',
                 fontSize: 'var(--font-size-medium)',
                 fontWeight: 'var(--font-weight-semibold)',
-                transition: 'background-color 0.3s ease'
+                transition: 'background-color 0.3s ease',
+                opacity: isAddingToCart ? 0.7 : 1
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#285eff';
+                if (product.stok > 0 && !isAddingToCart) {
+                  e.currentTarget.style.backgroundColor = '#285eff';
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--primary-color)';
+                if (product.stok > 0 && !isAddingToCart) {
+                  e.currentTarget.style.backgroundColor = 'var(--primary-color)';
+                }
               }}
             >
-              Beli Sekarang
+              {isAddingToCart ? 'Menambahkan...' : product.stok === 0 ? 'Stok Habis' : 'Beli Sekarang'}
             </button>
           </div>
         </div>
