@@ -42,7 +42,11 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+            // Hit the rate limiter with 15-minute decay (900 seconds)
+            RateLimiter::hit($this->throttleKey(), 900);
+
+            // Store email in session for rate limit checking
+            $this->session()->put('login_email', $this->string('email'));
 
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
@@ -50,6 +54,9 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        // Clear the stored email on successful login
+        $this->session()->forget('login_email');
     }
 
     /**
@@ -59,11 +66,15 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        // Allow maximum 3 attempts with 15-minute cooldown (900 seconds)
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 3)) {
             return;
         }
 
         event(new Lockout($this));
+
+        // Store email in session for rate limit checking on page load
+        $this->session()->put('login_email', $this->string('email'));
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
 

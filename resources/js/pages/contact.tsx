@@ -196,7 +196,7 @@ export default function Contact() {
                   </span>
                   <div>
                     <strong>Email</strong><br />
-                    iconplus@gmail.com
+                    tepianteknologi@citranet.com
                   </div>
                 </div>
 

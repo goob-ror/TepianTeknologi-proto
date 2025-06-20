@@ -181,7 +181,7 @@ export default function Navigation() {
           <p className="m-0 flex items-center gap-2 font-regular">
             Email{' '}
             <a
-              href="mailto:iconplus@gmail.com"
+              href="mailto:tepianteknologi@citranet.com"
               style={{
                 color: 'var(--light-text)',
                 textDecoration: 'none',
@@ -190,7 +190,7 @@ export default function Navigation() {
               }}
               className="hover:opacity-80"
             >
-              iconplus@gmail.com
+              tepianteknologi@citranet.com
             </a>
           </p>
         </div>

@@ -3,6 +3,12 @@ import { Product } from '../types';
 import { getProductImage, isNewProduct, formatPrice } from '../utils/productUtils';
 import { Link } from '@inertiajs/react';
 
+// Utility function to truncate product names
+const truncateProductName = (name: string, maxLength: number = 30): string => {
+  if (name.length <= maxLength) return name;
+  return name.substring(0, maxLength) + '...';
+};
+
 interface ProductSectionProps {
   title: string;
   type: 'terlaris' | 'diskon' | 'terbaru';
@@ -130,6 +136,7 @@ export default function ProductSection({ title, type, products }: ProductSection
               textAlign: 'left',
               border: '#D9D9D9 solid 1px',
               width: '170px',
+              height: '280px',
               margin: '0 auto',
               display: 'flex',
               flexDirection: 'column',
@@ -141,8 +148,10 @@ export default function ProductSection({ title, type, products }: ProductSection
               style={{
                 textDecoration: 'none',
                 color: 'inherit',
-                display: 'block',
-                width: '100%'
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                height: '100%'
               }}
             >
               <img
@@ -150,6 +159,7 @@ export default function ProductSection({ title, type, products }: ProductSection
                 alt={product.nama_produk}
                 style={{
                   width: '100%',
+                  height: '140px',
                   objectFit: 'contain',
                   margin: '0'
                 }}
@@ -176,52 +186,58 @@ export default function ProductSection({ title, type, products }: ProductSection
                   </h2>
                 </div>
               )}
-              <h1 style={{
-                fontSize: 'var(--font-size-medium)',
-                color: 'var(--grey-text)',
-                margin: '5px 0 15px 0',
-                padding: '0 10px 0 10px',
-                fontWeight: 'var(--font-weight-semibold)',
-                width: '100%',
-                textAlign: 'left'
-              }}>{product.nama_produk}</h1>
-              {product.is_diskon && product.harga_diskon && (
-                <p
-                  className="diskon-price"
-                  style={{
-                    color: '#FA766A',
-                    fontSize: '14px',
-                    textDecoration: 'line-through',
+              <div style={{ flex: '1', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <h1 style={{
+                  fontSize: 'var(--font-size-medium)',
+                  color: 'var(--grey-text)',
+                  margin: '10px 0 5px 0',
+                  padding: '0 10px',
+                  fontWeight: 'var(--font-weight-semibold)',
+                  textAlign: 'left',
+                  lineHeight: '1.3',
+                  wordWrap: 'break-word',
+                  overflow: 'hidden'
+                }}>{truncateProductName(product.nama_produk, 30)}</h1>
+                <div style={{ marginTop: 'auto', paddingBottom: '10px' }}>
+                  {product.is_diskon && product.harga_diskon && (
+                    <p
+                      className="diskon-price"
+                      style={{
+                        color: '#FA766A',
+                        fontSize: '14px',
+                        textDecoration: 'line-through',
+                        margin: '0 0 5px 0',
+                        padding: '0 10px'
+                      }}
+                    >{formatPrice(product.harga)}</p>
+                  )}
+                  <p style={{
+                    color: 'var(--primary-color)',
+                    fontSize: 'var(--font-size-medium)',
+                    fontWeight: 'var(--font-weight-semibold)',
+                    textDecoration: 'none',
                     margin: '0',
-                    padding: '0 10px'
-                  }}
-                >{formatPrice(product.harga)}</p>
-              )}
-              <p style={{
-                color: 'var(--primary-color)',
-                fontSize: 'var(--font-size-medium)',
-                fontWeight: 'var(--font-weight-semibold)',
-                textDecoration: 'none',
-                margin: '0',
-                padding: '0 10px 10px 10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%'
-              }}>
-                {product.is_diskon && product.harga_diskon ? formatPrice(product.harga_diskon) : formatPrice(product.harga)}
-                <span>
-                  <img
-                    src="/icons/shopping-cart.png"
-                    className="price-cart"
-                    style={{
-                      width: '19.69px',
-                      height: '17px'
-                    }}
-                    alt="Cart"
-                  />
-                </span>
-              </p>
+                    padding: '0 10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%'
+                  }}>
+                    {product.is_diskon && product.harga_diskon ? formatPrice(product.harga_diskon) : formatPrice(product.harga)}
+                    <span>
+                      <img
+                        src="/icons/shopping-cart.png"
+                        className="price-cart"
+                        style={{
+                          width: '19.69px',
+                          height: '17px'
+                        }}
+                        alt="Cart"
+                      />
+                    </span>
+                  </p>
+                </div>
+              </div>
             </a>
           </div>
         ))}
@@ -331,13 +347,18 @@ export default function ProductSection({ title, type, products }: ProductSection
               color: 'var(--grey-text)',
               margin: '0 0 20px 0',
               fontWeight: 'var(--font-weight-semibold)'
-            }}>{type === 'terlaris' ? 'Terlaris' : 'Terbaru'} di OLT</h1>
+            }}>
+              {type === 'terlaris'
+                ? `Terlaris di ${safeProducts.length > 0 && safeProducts[0].category ? safeProducts[0].category.nama_kategori : 'Kategori'}`
+                : `Terbaru di ${safeProducts.length > 0 && safeProducts[0].category ? safeProducts[0].category.nama_kategori : 'Kategori'}`
+              }
+            </h1>
             <p style={{
               fontSize: '16px',
               color: 'var(--grey-text)',
               margin: '0 0 30px 0',
               fontWeight: 'var(--font-weight-regular)'
-            }}>{safeProducts.length > 0 ? safeProducts[0].nama_produk : 'Nama Product'}</p>
+            }}>{safeProducts.length > 0 ? truncateProductName(safeProducts[0].nama_produk, 40) : 'Nama Product'}</p>
             <div
               className="price"
               style={{
@@ -429,13 +450,18 @@ export default function ProductSection({ title, type, products }: ProductSection
               color: 'var(--grey-text)',
               margin: '0 0 20px 0',
               fontWeight: 'var(--font-weight-semibold)'
-            }}>{type === 'terlaris' ? 'Terlaris' : 'Terbaru'} di ONT</h1>
+            }}>
+              {type === 'terlaris'
+                ? `Terlaris di ${safeProducts.length > 1 && safeProducts[1].category ? safeProducts[1].category.nama_kategori : 'Kategori'}`
+                : `Terbaru di ${safeProducts.length > 1 && safeProducts[1].category ? safeProducts[1].category.nama_kategori : 'Kategori'}`
+              }
+            </h1>
             <p style={{
               fontSize: '16px',
               color: 'var(--grey-text)',
               margin: '0 0 30px 0',
               fontWeight: 'var(--font-weight-regular)'
-            }}>{safeProducts.length > 1 ? safeProducts[1].nama_produk : 'Nama Product'}</p>
+            }}>{safeProducts.length > 1 ? truncateProductName(safeProducts[1].nama_produk, 40) : 'Nama Product'}</p>
             <div
               className="price"
               style={{
@@ -489,7 +515,7 @@ export default function ProductSection({ title, type, products }: ProductSection
           gap: '20px'
         }}
       >
-        {safeProducts.slice(0, 6).map((product, index) => (
+        {safeProducts.slice(2, 8).map((product, index) => (
           <div
             key={product.id}
             className={`${type}-${index + 1}`}
@@ -498,6 +524,7 @@ export default function ProductSection({ title, type, products }: ProductSection
               textAlign: 'left',
               border: '#D9D9D9 solid 1px',
               width: '170px',
+              height: '280px',
               margin: '0 auto',
               display: 'flex',
               flexDirection: 'column',
@@ -509,8 +536,10 @@ export default function ProductSection({ title, type, products }: ProductSection
               style={{
                 textDecoration: 'none',
                 color: 'inherit',
-                display: 'block',
-                width: '100%'
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                height: '100%'
               }}
             >
               <img
@@ -518,61 +547,70 @@ export default function ProductSection({ title, type, products }: ProductSection
                 alt={product.nama_produk}
                 style={{
                   width: '100%',
+                  height: '140px',
                   objectFit: 'contain',
                   margin: '0'
                 }}
               />
-              <h1 style={{
-                fontSize: 'var(--font-size-medium)',
-                color: 'var(--grey-text)',
-                margin: isNewProduct(product) ? '5px 0 15px 0' : '5px 0 8px 0',
-                padding: '0 10px 0 10px',
-                fontWeight: 'var(--font-weight-semibold)',
-                width: '100%',
-                textAlign: 'left',
-                display: isNewProduct(product) ? 'flex' : 'block',
-                alignItems: isNewProduct(product) ? 'center' : 'initial',
-                gap: isNewProduct(product) ? '8px' : 'initial'
-              }}>
-                {product.nama_produk}
-                {isNewProduct(product) && (
-                  <div
-                    className="terbaru-tag"
-                    style={{
-                      backgroundColor: 'var(--primary-color)',
-                      color: 'var(--light-text)',
-                      padding: '2px 6px',
-                      fontSize: '14px',
-                      fontWeight: 'var(--font-weight-regular)',
-                      borderRadius: '4px'
-                    }}
-                  >NEW</div>
-                )}
-              </h1>
-              <p style={{
-                color: 'var(--primary-color)',
-                fontSize: 'var(--font-size-medium)',
-                fontWeight: 'var(--font-weight-semibold)',
-                margin: '0',
-                padding: '0 10px 10px 10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%'
-              }}>
-                {formatPrice(product.harga)}
-                <span>
-                  <img
-                    src="/icons/shopping-cart.png"
-                    className="price-cart"
-                    style={{
-                      width: '19.69px',
-                      height: '17px'
-                    }}
-                    alt="Cart"
-                  />
-                </span>
-              </p>
+              <div style={{ flex: '1', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <h1 style={{
+                  fontSize: 'var(--font-size-medium)',
+                  color: 'var(--grey-text)',
+                  margin: '10px 0 5px 0',
+                  padding: '0 10px',
+                  fontWeight: 'var(--font-weight-semibold)',
+                  textAlign: 'left',
+                  lineHeight: '1.3',
+                  wordWrap: 'break-word',
+                  overflow: 'hidden',
+                  display: isNewProduct(product) ? 'flex' : 'block',
+                  alignItems: isNewProduct(product) ? 'flex-start' : 'initial',
+                  gap: isNewProduct(product) ? '8px' : 'initial',
+                  flexWrap: isNewProduct(product) ? 'wrap' : 'initial'
+                }}>
+                  <span>{truncateProductName(product.nama_produk, 30)}</span>
+                  {isNewProduct(product) && (
+                    <div
+                      className="terbaru-tag"
+                      style={{
+                        backgroundColor: 'var(--primary-color)',
+                        color: 'var(--light-text)',
+                        padding: '2px 6px',
+                        fontSize: '12px',
+                        fontWeight: 'var(--font-weight-regular)',
+                        borderRadius: '4px',
+                        flexShrink: 0
+                      }}
+                    >NEW</div>
+                  )}
+                </h1>
+                <div style={{ marginTop: 'auto', paddingBottom: '10px' }}>
+                  <p style={{
+                    color: 'var(--primary-color)',
+                    fontSize: 'var(--font-size-medium)',
+                    fontWeight: 'var(--font-weight-semibold)',
+                    margin: '0',
+                    padding: '0 10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%'
+                  }}>
+                    {formatPrice(product.harga)}
+                    <span>
+                      <img
+                        src="/icons/shopping-cart.png"
+                        className="price-cart"
+                        style={{
+                          width: '19.69px',
+                          height: '17px'
+                        }}
+                        alt="Cart"
+                      />
+                    </span>
+                  </p>
+                </div>
+              </div>
             </a>
           </div>
         ))}

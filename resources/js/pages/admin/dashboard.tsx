@@ -40,6 +40,10 @@ interface Stats {
     totalProducts: number;
     totalCategories: number;
     totalBrands: number;
+    totalOrders: number;
+    totalRevenue: number;
+    pendingOrders: number;
+    completedOrders: number;
 }
 
 interface SalesData {
@@ -60,6 +64,16 @@ export default function Dashboard({ stats, lowStockProducts, recentProducts, sal
         name: item.month,
         value: item.sales / 1000000 // Convert to millions for better display
     })) : [];
+
+    // Format currency for display
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(amount);
+    };
 
     // Transform products for legacy components
     const transformedLowStock = lowStockProducts && Array.isArray(lowStockProducts) ? lowStockProducts.map(product => ({
@@ -98,32 +112,64 @@ export default function Dashboard({ stats, lowStockProducts, recentProducts, sal
                 {/* Stats Row */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <StatCard
+                        title="Total Orders"
+                        value={stats.totalOrders?.toString() || '0'}
+                        icon={ShoppingCart}
+                        description="All time orders"
+                        colorTheme="blue"
+                    />
+                    <StatCard
+                        title="Total Revenue"
+                        value={formatCurrency(stats.totalRevenue || 0)}
+                        icon={TrendingUp}
+                        description="From completed orders"
+                        colorTheme="green"
+                    />
+                    <StatCard
+                        title="Pending Orders"
+                        value={stats.pendingOrders?.toString() || '0'}
+                        icon={Package}
+                        description="Awaiting payment"
+                        colorTheme="yellow"
+                    />
+                    <StatCard
+                        title="Completed Orders"
+                        value={stats.completedOrders?.toString() || '0'}
+                        icon={Users}
+                        description="Successfully delivered"
+                        colorTheme="purple"
+                    />
+                </div>
+
+                {/* Secondary Stats Row */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <StatCard
                         title="Total Users"
                         value={stats.totalUsers.toString()}
                         icon={Users}
-                        trend={{ value: 12, isPositive: true }}
-                        colorTheme="blue"
+                        description="Registered users"
+                        colorTheme="pink"
                     />
                     <StatCard
                         title="Total Products"
                         value={stats.totalProducts.toString()}
                         icon={Package}
-                        trend={{ value: 8, isPositive: true }}
-                        colorTheme="green"
+                        description="In catalog"
+                        colorTheme="orange"
                     />
                     <StatCard
                         title="Categories"
                         value={stats.totalCategories.toString()}
                         icon={Tag}
-                        trend={{ value: 2, isPositive: true }}
-                        colorTheme="yellow"
+                        description="Product categories"
+                        colorTheme="blue"
                     />
                     <StatCard
                         title="Brands"
                         value={stats.totalBrands.toString()}
                         icon={Store}
-                        trend={{ value: 1, isPositive: true }}
-                        colorTheme="purple"
+                        description="Available brands"
+                        colorTheme="green"
                     />
                 </div>
 
@@ -131,7 +177,7 @@ export default function Dashboard({ stats, lowStockProducts, recentProducts, sal
                 <div className="grid gap-4 md:grid-cols-3">
                     <ProductsChart
                         data={chartData}
-                        title="Monthly Sales (in Millions IDR)"
+                        title="Monthly Sales Revenue (Last 6 Months)"
                         className="md:col-span-2"
                     />
                     <LowStockProducts products={transformedLowStock} />

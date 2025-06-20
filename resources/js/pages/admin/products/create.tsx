@@ -73,6 +73,7 @@ export default function CreateProduct({ categories, brands }: Props) {
         gambar: null as File | null,
         is_active: true,
         is_diskon: false,
+        discount_type: 'price', // 'price' or 'percentage'
         harga_diskon: '',
         diskon_persen: '',
     });
@@ -263,10 +264,11 @@ export default function CreateProduct({ categories, brands }: Props) {
                                         id="is_diskon"
                                         checked={data.is_diskon}
                                         onCheckedChange={(checked) => {
-                                            setData('is_diskon', checked);
+                                            setData('is_diskon', checked as any);
                                             if (!checked) {
                                                 setData('harga_diskon', '');
                                                 setData('diskon_persen', '');
+                                                setData('discount_type', 'price');
                                             }
                                         }}
                                     />
@@ -274,57 +276,100 @@ export default function CreateProduct({ categories, brands }: Props) {
                                 </div>
 
                                 {data.is_diskon && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-4">
+                                        {/* Discount Type Selection */}
                                         <div>
-                                            <Label htmlFor="harga_diskon">Discount Price (IDR) *</Label>
-                                            <div className="relative">
-                                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                                                    Rp
-                                                </span>
-                                                <Input
-                                                    id="harga_diskon"
-                                                    type="text"
-                                                    value={formatIDR(data.harga_diskon)}
-                                                    onChange={(e) => {
-                                                        const numericValue = parseIDR(e.target.value);
-                                                        setData('harga_diskon', numericValue);
-                                                    }}
-                                                    placeholder="0"
-                                                    className={`pl-8 ${errors.harga_diskon ? 'border-red-500' : ''}`}
-                                                />
+                                            <Label className="font-medium">Discount Method</Label>
+                                            <div className="flex space-x-4 mt-2">
+                                                <div className="flex items-center space-x-2">
+                                                    <input
+                                                        type="radio"
+                                                        id="discount_price"
+                                                        name="discount_type"
+                                                        value="price"
+                                                        checked={data.discount_type === 'price'}
+                                                        onChange={(e) => {
+                                                            setData('discount_type', e.target.value as any);
+                                                            setData('diskon_persen', '');
+                                                        }}
+                                                    />
+                                                    <Label htmlFor="discount_price">Manual Discount Price</Label>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <input
+                                                        type="radio"
+                                                        id="discount_percentage"
+                                                        name="discount_type"
+                                                        value="percentage"
+                                                        checked={data.discount_type === 'percentage'}
+                                                        onChange={(e) => {
+                                                            setData('discount_type', e.target.value as any);
+                                                            setData('harga_diskon', '');
+                                                        }}
+                                                    />
+                                                    <Label htmlFor="discount_percentage">Percentage Discount</Label>
+                                                </div>
                                             </div>
-                                            {errors.harga_diskon && (
-                                                <p className="text-sm text-red-500 mt-1">{errors.harga_diskon}</p>
-                                            )}
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                Must be less than original price
-                                            </p>
                                         </div>
 
-                                        <div>
-                                            <Label htmlFor="diskon_persen">Discount Percentage (Optional)</Label>
-                                            <div className="relative">
-                                                <Input
-                                                    id="diskon_persen"
-                                                    type="number"
-                                                    min="1"
-                                                    max="99"
-                                                    value={data.diskon_persen}
-                                                    onChange={(e) => setData('diskon_persen', e.target.value)}
-                                                    placeholder="0"
-                                                    className={`pr-8 ${errors.diskon_persen ? 'border-red-500' : ''}`}
-                                                />
-                                                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                                                    %
-                                                </span>
+                                        {/* Discount Input Fields */}
+                                        {data.discount_type === 'price' ? (
+                                            <div>
+                                                <Label htmlFor="harga_diskon">Discount Price (IDR) *</Label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                                                        Rp
+                                                    </span>
+                                                    <Input
+                                                        id="harga_diskon"
+                                                        type="text"
+                                                        value={formatIDR(data.harga_diskon)}
+                                                        onChange={(e) => {
+                                                            const numericValue = parseIDR(e.target.value);
+                                                            setData('harga_diskon', numericValue);
+                                                        }}
+                                                        placeholder="0"
+                                                        className={`pl-8 ${errors.harga_diskon ? 'border-red-500' : ''}`}
+                                                    />
+                                                </div>
+                                                {errors.harga_diskon && (
+                                                    <p className="text-sm text-red-500 mt-1">{errors.harga_diskon}</p>
+                                                )}
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    Enter the final discounted price (must be less than original price)
+                                                </p>
                                             </div>
-                                            {errors.diskon_persen && (
-                                                <p className="text-sm text-red-500 mt-1">{errors.diskon_persen}</p>
-                                            )}
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                For display purposes (1-99%)
-                                            </p>
-                                        </div>
+                                        ) : (
+                                            <div>
+                                                <Label htmlFor="diskon_persen">Discount Percentage *</Label>
+                                                <div className="relative">
+                                                    <Input
+                                                        id="diskon_persen"
+                                                        type="number"
+                                                        min="1"
+                                                        max="99"
+                                                        value={data.diskon_persen}
+                                                        onChange={(e) => setData('diskon_persen', e.target.value)}
+                                                        placeholder="0"
+                                                        className={`pr-8 ${errors.diskon_persen ? 'border-red-500' : ''}`}
+                                                    />
+                                                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                                                        %
+                                                    </span>
+                                                </div>
+                                                {errors.diskon_persen && (
+                                                    <p className="text-sm text-red-500 mt-1">{errors.diskon_persen}</p>
+                                                )}
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    Enter discount percentage (1-99%). The discounted price will be calculated automatically.
+                                                </p>
+                                                {data.diskon_persen && data.harga && (
+                                                    <p className="text-xs text-blue-600 mt-1">
+                                                        Discounted price: Rp {formatIDR((parseFloat(data.harga) * (100 - parseFloat(data.diskon_persen)) / 100).toString())}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -389,7 +434,7 @@ export default function CreateProduct({ categories, brands }: Props) {
                                 <Switch
                                     id="is_active"
                                     checked={data.is_active}
-                                    onCheckedChange={(checked) => setData('is_active', checked)}
+                                    onCheckedChange={(checked) => setData('is_active', checked as any)}
                                 />
                                 <Label htmlFor="is_active">Active Product</Label>
                             </div>

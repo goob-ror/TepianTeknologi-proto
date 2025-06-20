@@ -28,36 +28,11 @@ class HomeController extends Controller
             ->limit(8)
             ->get();
 
-        // Get products for "Terlaris" section (for now, we'll use random products)
-        // In the future, this could be based on sales data
-        $popularProducts = Product::with(['category', 'brand'])
-            ->active()
-            ->inStock()
-            ->inRandomOrder()
-            ->limit(8)
-            ->get();
+        // Get products for "Terlaris" section based on actual sales data
+        $popularProducts = $this->getTopSellingProducts(8);
 
-        // Get products for "Diskon" section (products with actual discounts)
-        $discountProducts = Product::with(['category', 'brand'])
-            ->active()
-            ->inStock()
-            ->onDiscount()
-            ->orderBy('created_at', 'desc')
-            ->limit(8)
-            ->get();
-
-        // If no discount products, fallback to regular products for display
-        if ($discountProducts->count() < 8) {
-            $fallbackProducts = Product::with(['category', 'brand'])
-                ->active()
-                ->inStock()
-                ->whereNotIn('id', $discountProducts->pluck('id'))
-                ->inRandomOrder()
-                ->limit(8 - $discountProducts->count())
-                ->get();
-
-            $discountProducts = $discountProducts->concat($fallbackProducts);
-        }
+        // Get products for "Diskon" section (only products with actual discounts, ordered by highest discount percentage)
+        $discountProducts = $this->getDiscountProducts(8);
 
         return Inertia::render('home', [
             'latestProducts' => $latestProducts->toArray(),
@@ -448,10 +423,8 @@ class HomeController extends Controller
                     throw new \Exception("Stok tidak mencukupi untuk produk: {$product->nama_produk}");
                 }
 
-                // Use the price from the frontend (which should match the current product price)
-                $currentPrice = $product->is_diskon && $product->harga_diskon
-                    ? $product->harga_diskon
-                    : $product->harga;
+                // Use the effective price (considers both discount types)
+                $currentPrice = $product->effective_price;
 
                 DetailPesanan::create([
                     'pesanan_id' => $order->id,
@@ -513,5 +486,101 @@ class HomeController extends Controller
             });
 
         return response()->json($products);
+    }
+
+    /**
+     * Get top selling products based on actual sales data.
+     */
+    private function getTopSellingProducts($limit = 8)
+    {
+        // Get product IDs ordered by total sales
+        $topSellingProductIds = DB::table('detail_pesanan')
+            ->join('pesanan', 'detail_pesanan.pesanan_id', '=', 'pesanan.id')
+            ->whereIn('pesanan.status', ['dibayar', 'dikirim', 'selesai'])
+            ->select('detail_pesanan.produk_id', DB::raw('SUM(detail_pesanan.jumlah) as total_sold'))
+            ->groupBy('detail_pesanan.produk_id')
+            ->orderBy('total_sold', 'desc')
+            ->limit($limit)
+            ->pluck('produk_id');
+
+        // If no sales data exists, fallback to latest products
+        if ($topSellingProductIds->isEmpty()) {
+            return Product::with(['category', 'brand'])
+                ->active()
+                ->inStock()
+                ->orderBy('created_at', 'desc')
+                ->limit($limit)
+                ->get();
+        }
+
+        // Get the actual products with their relationships, maintaining the order
+        $products = Product::with(['category', 'brand'])
+            ->active()
+            ->inStock()
+            ->whereIn('id', $topSellingProductIds)
+            ->get()
+            ->sortBy(function ($product) use ($topSellingProductIds) {
+                return $topSellingProductIds->search($product->id);
+            })
+            ->values();
+
+        // If we don't have enough top-selling products, fill with latest products
+        if ($products->count() < $limit) {
+            $additionalProducts = Product::with(['category', 'brand'])
+                ->active()
+                ->inStock()
+                ->whereNotIn('id', $topSellingProductIds)
+                ->orderBy('created_at', 'desc')
+                ->limit($limit - $products->count())
+                ->get();
+
+            $products = $products->concat($additionalProducts);
+        }
+
+        return $products;
+    }
+
+    /**
+     * Get discount products ordered by highest discount percentage.
+     */
+    private function getDiscountProducts($limit = 8)
+    {
+        // Get products with actual discounts
+        $discountProducts = Product::with(['category', 'brand'])
+            ->active()
+            ->inStock()
+            ->where('is_diskon', true)
+            ->where(function($query) {
+                // Must have either discount price or discount percentage
+                $query->whereNotNull('harga_diskon')
+                      ->orWhereNotNull('diskon_persen');
+            })
+            ->get()
+            ->filter(function($product) {
+                // Additional filter to ensure valid discount
+                if ($product->diskon_persen && $product->diskon_persen > 0) {
+                    return true;
+                }
+                if ($product->harga_diskon && $product->harga_diskon < $product->harga) {
+                    return true;
+                }
+                return false;
+            })
+            ->map(function($product) {
+                // Calculate discount percentage for sorting
+                if ($product->diskon_persen && $product->diskon_persen > 0) {
+                    $product->calculated_discount_percentage = $product->diskon_persen;
+                } elseif ($product->harga_diskon && $product->harga_diskon < $product->harga) {
+                    $product->calculated_discount_percentage = round((($product->harga - $product->harga_diskon) / $product->harga) * 100);
+                } else {
+                    $product->calculated_discount_percentage = 0;
+                }
+                return $product;
+            })
+            ->sortByDesc('calculated_discount_percentage')
+            ->take($limit)
+            ->values();
+
+        return $discountProducts;
     }
 }

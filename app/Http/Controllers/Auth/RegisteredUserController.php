@@ -38,10 +38,10 @@ class RegisteredUserController extends Controller
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'fullname' => $request->name,
+            'username' => strtolower(str_replace(' ', '', $request->name)) . rand(100, 999),
+            'nama_lengkap' => $request->name,
             'email' => $request->email,
-            'phone' => $request->phone,
+            'no_hp' => $request->phone,
             'password' => Hash::make($request->password),
         ]);
 

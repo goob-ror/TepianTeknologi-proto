@@ -12,13 +12,17 @@ type LoginForm = {
 interface LoginProps {
     status?: string;
     canResetPassword: boolean;
+    rateLimitSeconds?: number;
+    rateLimitEmail?: string;
 }
 
-export default function Login({ status, canResetPassword }: LoginProps) {
+export default function Login({ status, canResetPassword, rateLimitSeconds = 0, rateLimitEmail = '' }: LoginProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
+    const [remainingSeconds, setRemainingSeconds] = useState(rateLimitSeconds);
+    const [isRateLimited, setIsRateLimited] = useState(rateLimitSeconds > 0);
     const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
-        email: '',
+        email: rateLimitEmail || '',
         password: '',
         remember: false,
     });
@@ -40,8 +44,40 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         };
     }, []);
 
+    // Countdown timer for rate limiting
+    useEffect(() => {
+        if (remainingSeconds <= 0) {
+            setIsRateLimited(false);
+            return;
+        }
+
+        const interval = setInterval(() => {
+            setRemainingSeconds(prev => {
+                if (prev <= 1) {
+                    setIsRateLimited(false);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [remainingSeconds]);
+
+    // Format seconds to MM:SS
+    const formatTime = (seconds: number): string => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
+
+        if (isRateLimited) {
+            return; // Prevent submission when rate limited
+        }
+
         post(route('login'), {
             onFinish: () => reset('password'),
         });
@@ -111,7 +147,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     fontSize: '2rem',
                                     fontWeight: '600',
                                     color: '#333',
-                                    marginBottom: '32px',
+                                    marginBottom: isRateLimited ? '16px' : '32px',
                                     borderBottom: '3px solid #0b46f9',
                                     display: 'inline-block',
                                     paddingBottom: '6px',
@@ -120,6 +156,26 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             >
                                 Login
                             </h2>
+
+                            {isRateLimited && (
+                                <div
+                                    style={{
+                                        background: '#fef2f2',
+                                        border: '1px solid #fecaca',
+                                        borderRadius: '8px',
+                                        padding: '12px 16px',
+                                        marginBottom: '24px',
+                                        textAlign: 'center'
+                                    }}
+                                >
+                                    <div style={{ color: '#dc2626', fontSize: '0.875rem', fontWeight: '500' }}>
+                                        Too many login attempts
+                                    </div>
+                                    <div style={{ color: '#7f1d1d', fontSize: '0.75rem', marginTop: '4px' }}>
+                                        Please wait {formatTime(remainingSeconds)} before trying again
+                                    </div>
+                                </div>
+                            )}
 
                             <form
                                 className="login-form"
@@ -147,6 +203,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     id="email"
                                     placeholder="Enter your email"
                                     required
+                                    disabled={isRateLimited}
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
                                     style={{
@@ -157,15 +214,21 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         fontSize: '1rem',
                                         outline: 'none',
                                         boxSizing: 'border-box',
-                                        transition: 'border-color 0.2s, box-shadow 0.2s'
+                                        transition: 'border-color 0.2s, box-shadow 0.2s',
+                                        backgroundColor: isRateLimited ? '#f9fafb' : 'white',
+                                        color: isRateLimited ? '#6b7280' : 'black'
                                     }}
                                     onFocus={(e) => {
-                                        e.target.style.borderColor = '#0b46f9';
-                                        e.target.style.boxShadow = '0 0 0 2px rgba(11, 70, 249, 0.2)';
+                                        if (!isRateLimited) {
+                                            e.target.style.borderColor = '#0b46f9';
+                                            e.target.style.boxShadow = '0 0 0 2px rgba(11, 70, 249, 0.2)';
+                                        }
                                     }}
                                     onBlur={(e) => {
-                                        e.target.style.borderColor = '#d1d5db';
-                                        e.target.style.boxShadow = 'none';
+                                        if (!isRateLimited) {
+                                            e.target.style.borderColor = '#d1d5db';
+                                            e.target.style.boxShadow = 'none';
+                                        }
                                     }}
                                 />
                                 {errors.email && (
@@ -197,6 +260,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         id="password"
                                         placeholder="Enter your password"
                                         required
+                                        disabled={isRateLimited}
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
                                         style={{
@@ -207,15 +271,21 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             fontSize: '1rem',
                                             outline: 'none',
                                             boxSizing: 'border-box',
-                                            transition: 'border-color 0.2s, box-shadow 0.2s'
+                                            transition: 'border-color 0.2s, box-shadow 0.2s',
+                                            backgroundColor: isRateLimited ? '#f9fafb' : 'white',
+                                            color: isRateLimited ? '#6b7280' : 'black'
                                         }}
                                         onFocus={(e) => {
-                                            e.target.style.borderColor = '#0b46f9';
-                                            e.target.style.boxShadow = '0 0 0 2px rgba(11, 70, 249, 0.2)';
+                                            if (!isRateLimited) {
+                                                e.target.style.borderColor = '#0b46f9';
+                                                e.target.style.boxShadow = '0 0 0 2px rgba(11, 70, 249, 0.2)';
+                                            }
                                         }}
                                         onBlur={(e) => {
-                                            e.target.style.borderColor = '#d1d5db';
-                                            e.target.style.boxShadow = 'none';
+                                            if (!isRateLimited) {
+                                                e.target.style.borderColor = '#d1d5db';
+                                                e.target.style.boxShadow = 'none';
+                                            }
                                         }}
                                     />
                                 </div>
@@ -228,31 +298,36 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 <button
                                     type="submit"
                                     className="login-button"
-                                    disabled={processing}
+                                    disabled={processing || isRateLimited}
                                     style={{
                                         marginTop: '10px',
                                         padding: '10px 0',
-                                        background: processing ? '#6b7280' : '#0b46f9',
+                                        background: (processing || isRateLimited) ? '#6b7280' : '#0b46f9',
                                         color: '#fff',
                                         border: 'none',
                                         borderRadius: '6px',
                                         fontSize: '1rem',
                                         fontWeight: '600',
-                                        cursor: processing ? 'not-allowed' : 'pointer',
+                                        cursor: (processing || isRateLimited) ? 'not-allowed' : 'pointer',
                                         transition: 'background 0.2s'
                                     }}
                                     onMouseEnter={(e) => {
-                                        if (!processing) {
+                                        if (!processing && !isRateLimited) {
                                             e.currentTarget.style.background = '#0072ff';
                                         }
                                     }}
                                     onMouseLeave={(e) => {
-                                        if (!processing) {
+                                        if (!processing && !isRateLimited) {
                                             e.currentTarget.style.background = '#0b46f9';
                                         }
                                     }}
                                 >
-                                    {processing ? 'Logging in...' : 'Login'}
+                                    {processing
+                                        ? 'Logging in...'
+                                        : isRateLimited
+                                        ? `Try again in ${formatTime(remainingSeconds)}`
+                                        : 'Login'
+                                    }
                                 </button>
                             </form>
 

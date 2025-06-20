@@ -8,9 +8,13 @@ use App\Models\Product;
 use App\Models\Kategori;
 use App\Models\Brand;
 use App\Models\User;
+use App\Models\Pesanan;
+use App\Models\DetailPesanan;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ProductController extends Controller
 {
@@ -38,15 +42,14 @@ class ProductController extends Controller
             ->limit(5)
             ->get();
 
-        // Calculate monthly sales data (sample data for now)
-        $salesData = [
-            ['month' => 'Jan', 'sales' => 12000000],
-            ['month' => 'Feb', 'sales' => 15000000],
-            ['month' => 'Mar', 'sales' => 18000000],
-            ['month' => 'Apr', 'sales' => 22000000],
-            ['month' => 'May', 'sales' => 25000000],
-            ['month' => 'Jun', 'sales' => 24500000],
-        ];
+        // Calculate real monthly sales data from database
+        $salesData = $this->getMonthlySalesData();
+
+        // Get additional dashboard statistics
+        $totalOrders = Pesanan::count();
+        $totalRevenue = Pesanan::whereIn('status', ['dibayar', 'dikirim', 'selesai'])->sum('total_harga');
+        $pendingOrders = Pesanan::where('status', 'menunggu')->count();
+        $completedOrders = Pesanan::where('status', 'selesai')->count();
 
         return Inertia::render('admin/dashboard', [
             'stats' => [
@@ -54,6 +57,10 @@ class ProductController extends Controller
                 'totalProducts' => $totalProducts,
                 'totalCategories' => $totalCategories,
                 'totalBrands' => $totalBrands,
+                'totalOrders' => $totalOrders,
+                'totalRevenue' => $totalRevenue,
+                'pendingOrders' => $pendingOrders,
+                'completedOrders' => $completedOrders,
             ],
             'lowStockProducts' => $lowStockProducts,
             'recentProducts' => $recentProducts,
@@ -165,15 +172,41 @@ class ProductController extends Controller
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'is_active' => 'boolean',
             'is_diskon' => 'boolean',
+            'discount_type' => 'nullable|string|in:price,percentage',
             'harga_diskon' => 'nullable|numeric|min:0|lt:harga',
             'diskon_persen' => 'nullable|integer|min:1|max:99',
         ]);
+
+        // Custom validation for discount fields
+        if ($request->is_diskon) {
+            $discountType = $request->discount_type ?? 'price';
+
+            if ($discountType === 'price') {
+                $validator->after(function ($validator) use ($request) {
+                    if (!$request->harga_diskon || $request->harga_diskon <= 0) {
+                        $validator->errors()->add('harga_diskon', 'Discount price is required when using manual price discount.');
+                    }
+                    if ($request->harga_diskon >= $request->harga) {
+                        $validator->errors()->add('harga_diskon', 'Discount price must be less than original price.');
+                    }
+                });
+            } elseif ($discountType === 'percentage') {
+                $validator->after(function ($validator) use ($request) {
+                    if (!$request->diskon_persen || $request->diskon_persen <= 0) {
+                        $validator->errors()->add('diskon_persen', 'Discount percentage is required when using percentage discount.');
+                    }
+                });
+            }
+        }
 
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
+
+        // Process discount data based on discount type
+        $discountData = $this->processDiscountData($request);
 
         $data = [
             'nama_produk' => $request->nama_produk,
@@ -184,8 +217,8 @@ class ProductController extends Controller
             'brand_id' => $request->brand_id,
             'is_active' => $request->boolean('is_active', true),
             'is_diskon' => $request->boolean('is_diskon', false),
-            'harga_diskon' => $request->is_diskon ? $request->harga_diskon : null,
-            'diskon_persen' => $request->is_diskon ? $request->diskon_persen : null,
+            'harga_diskon' => $discountData['harga_diskon'],
+            'diskon_persen' => $discountData['diskon_persen'],
         ];
 
         // Handle image upload
@@ -243,15 +276,41 @@ class ProductController extends Controller
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'is_active' => 'boolean',
             'is_diskon' => 'boolean',
+            'discount_type' => 'nullable|string|in:price,percentage',
             'harga_diskon' => 'nullable|numeric|min:0|lt:harga',
             'diskon_persen' => 'nullable|integer|min:1|max:99',
         ]);
+
+        // Custom validation for discount fields
+        if ($request->is_diskon) {
+            $discountType = $request->discount_type ?? 'price';
+
+            if ($discountType === 'price') {
+                $validator->after(function ($validator) use ($request) {
+                    if (!$request->harga_diskon || $request->harga_diskon <= 0) {
+                        $validator->errors()->add('harga_diskon', 'Discount price is required when using manual price discount.');
+                    }
+                    if ($request->harga_diskon >= $request->harga) {
+                        $validator->errors()->add('harga_diskon', 'Discount price must be less than original price.');
+                    }
+                });
+            } elseif ($discountType === 'percentage') {
+                $validator->after(function ($validator) use ($request) {
+                    if (!$request->diskon_persen || $request->diskon_persen <= 0) {
+                        $validator->errors()->add('diskon_persen', 'Discount percentage is required when using percentage discount.');
+                    }
+                });
+            }
+        }
 
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
+
+        // Process discount data based on discount type
+        $discountData = $this->processDiscountData($request);
 
         $data = [
             'nama_produk' => $request->nama_produk,
@@ -262,8 +321,8 @@ class ProductController extends Controller
             'brand_id' => $request->brand_id,
             'is_active' => $request->boolean('is_active', true),
             'is_diskon' => $request->boolean('is_diskon', false),
-            'harga_diskon' => $request->is_diskon ? $request->harga_diskon : null,
-            'diskon_persen' => $request->is_diskon ? $request->diskon_persen : null,
+            'harga_diskon' => $discountData['harga_diskon'],
+            'diskon_persen' => $discountData['diskon_persen'],
         ];
 
         // Handle image upload
@@ -318,5 +377,112 @@ class ProductController extends Controller
 
         return redirect()->back()
             ->with('success', "Produk berhasil {$status}.");
+    }
+
+    /**
+     * Get monthly sales data for the chart.
+     */
+    private function getMonthlySalesData()
+    {
+        // Get sales data for the last 6 months
+        $salesData = [];
+        $currentDate = Carbon::now();
+
+        for ($i = 5; $i >= 0; $i--) {
+            $date = $currentDate->copy()->subMonths($i);
+            $monthName = $date->format('M');
+            $year = $date->year;
+            $month = $date->month;
+
+            // Calculate total sales for this month from completed orders
+            $monthlySales = Pesanan::whereIn('status', ['dibayar', 'dikirim', 'selesai'])
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+                ->sum('total_harga');
+
+            $salesData[] = [
+                'month' => $monthName,
+                'sales' => (float) $monthlySales,
+            ];
+        }
+
+        return $salesData;
+    }
+
+    /**
+     * Get top selling products data.
+     */
+    private function getTopSellingProducts($limit = 5)
+    {
+        return DB::table('detail_pesanan')
+            ->join('produk', 'detail_pesanan.produk_id', '=', 'produk.id')
+            ->join('pesanan', 'detail_pesanan.pesanan_id', '=', 'pesanan.id')
+            ->whereIn('pesanan.status', ['dibayar', 'dikirim', 'selesai'])
+            ->select(
+                'produk.nama_produk',
+                DB::raw('SUM(detail_pesanan.jumlah) as total_sold'),
+                DB::raw('SUM(detail_pesanan.subtotal) as total_revenue')
+            )
+            ->groupBy('produk.id', 'produk.nama_produk')
+            ->orderBy('total_sold', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Get order status distribution for charts.
+     */
+    private function getOrderStatusData()
+    {
+        return Pesanan::select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'status' => ucfirst($item->status),
+                    'count' => $item->count,
+                ];
+            });
+    }
+
+    /**
+     * Process discount data based on discount type.
+     */
+    private function processDiscountData($request)
+    {
+        if (!$request->is_diskon) {
+            return [
+                'harga_diskon' => null,
+                'diskon_persen' => null,
+            ];
+        }
+
+        $discountType = $request->discount_type ?? 'price';
+        $originalPrice = floatval($request->harga);
+
+        if ($discountType === 'percentage') {
+            // Calculate discount price from percentage
+            $percentage = intval($request->diskon_persen);
+            $discountPrice = $originalPrice * (100 - $percentage) / 100;
+
+            return [
+                'harga_diskon' => round($discountPrice, 2),
+                'diskon_persen' => $percentage,
+            ];
+        } else {
+            // Use manual discount price, calculate percentage for display
+            $discountPrice = floatval($request->harga_diskon);
+            $percentage = null;
+
+            // Calculate percentage if discount price is valid
+            if ($discountPrice > 0 && $discountPrice < $originalPrice) {
+                $percentage = round((($originalPrice - $discountPrice) / $originalPrice) * 100);
+            }
+
+            return [
+                'harga_diskon' => $discountPrice,
+                'diskon_persen' => $percentage,
+            ];
+        }
     }
 }
