@@ -254,52 +254,74 @@ const OrderGroup = ({ order }: { order: Order }) => {
           Jumlah Item: <span style={{ fontWeight: 'var(--font-weight-semibold)' }}>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</span> item
         </p>
         <div className="flex justify-between items-center w-full">
-          {/* Only show "Pesanan Selesai" status when order is actually completed */}
-          {order.raw_status === 'selesai' ? (
-            <div
-              className="px-5 py-2.5 text-white border-none"
+          <div className="flex items-center gap-4">
+            {/* Only show "Pesanan Selesai" status when order is actually completed */}
+            {order.raw_status === 'selesai' ? (
+              <div
+                className="px-5 py-2.5 text-white border-none"
+                style={{
+                  backgroundColor: '#28a745',
+                  fontFamily: 'var(--main-font)',
+                  fontSize: 'var(--font-size-medium)',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <span>✓</span>
+                <span>Pesanan Selesai</span>
+              </div>
+            ) : order.raw_status === 'dibatalkan' ? (
+              <div
+                className="px-5 py-2.5 text-white border-none"
+                style={{
+                  backgroundColor: '#DC3545',
+                  fontFamily: 'var(--main-font)',
+                  fontSize: 'var(--font-size-medium)',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <span>✗</span>
+                <span>Pesanan Dibatalkan</span>
+              </div>
+            ) : (
+              <div
+                className="px-5 py-2.5 text-white border-none"
+                style={{
+                  backgroundColor: getStatusColor(order.raw_status),
+                  fontFamily: 'var(--main-font)',
+                  fontSize: 'var(--font-size-medium)',
+                  borderRadius: '4px'
+                }}
+              >
+                {order.status_text}
+              </div>
+            )}
+
+            {/* Download Transaction Proof Button */}
+            <a
+              href={`/order/${order.id}/transaction-proof`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 text-white border-none cursor-pointer flex items-center gap-2"
               style={{
-                backgroundColor: '#28a745',
+                backgroundColor: '#007BFF',
                 fontFamily: 'var(--main-font)',
-                fontSize: 'var(--font-size-medium)',
+                fontSize: 'var(--font-size-small)',
                 borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
+                textDecoration: 'none'
               }}
+              title="Download Bukti Transaksi"
             >
-              <span>✓</span>
-              <span>Pesanan Selesai</span>
-            </div>
-          ) : order.raw_status === 'dibatalkan' ? (
-            <div
-              className="px-5 py-2.5 text-white border-none"
-              style={{
-                backgroundColor: '#DC3545',
-                fontFamily: 'var(--main-font)',
-                fontSize: 'var(--font-size-medium)',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <span>✗</span>
-              <span>Pesanan Dibatalkan</span>
-            </div>
-          ) : (
-            <div
-              className="px-5 py-2.5 text-white border-none"
-              style={{
-                backgroundColor: getStatusColor(order.raw_status),
-                fontFamily: 'var(--main-font)',
-                fontSize: 'var(--font-size-medium)',
-                borderRadius: '4px'
-              }}
-            >
-              {order.status_text}
-            </div>
-          )}
+              <span>📄</span>
+              <span>Bukti Transaksi</span>
+            </a>
+          </div>
+
           <p
             style={{
               margin: 0,

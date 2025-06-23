@@ -12,6 +12,8 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class HomeController extends Controller
 {
@@ -54,6 +56,7 @@ class HomeController extends Controller
         $search = $request->get('search');
         $sortBy = $request->get('sort_by', 'created_at');
         $sortOrder = $request->get('sort_order', 'desc');
+        $perPage = $request->get('per_page', 8); // Default to 8 products per page
 
         // Build the query
         $query = Product::with(['category', 'brand'])
@@ -84,17 +87,24 @@ class HomeController extends Controller
         // Apply sorting
         $query->orderBy($sortBy, $sortOrder);
 
-        // Paginate results (8 products per page for 2 rows × 4 columns layout)
-        $products = $query->paginate(8)->withQueryString();
+        // Validate perPage to prevent abuse
+        $perPage = in_array($perPage, [8, 16, 24, 32]) ? $perPage : 8;
+
+        // Paginate results with dynamic per page count
+        $products = $query->paginate($perPage)->withQueryString();
 
         // Get categories and brands for filters
         $categories = Kategori::orderBy('nama_kategori')->get();
         $brands = Brand::orderBy('nama_brand')->get();
 
+        // Get the highest price for dynamic price filter
+        $highestPrice = Product::active()->inStock()->max('harga') ?? 10000000;
+
         return Inertia::render('katalog', [
             'products' => $products,
             'categories' => $categories,
             'brands' => $brands,
+            'highestPrice' => $highestPrice,
             'filters' => [
                 'category_id' => $categoryId,
                 'brand_id' => $brandId,
@@ -149,11 +159,15 @@ class HomeController extends Controller
         $categories = Kategori::orderBy('nama_kategori')->get();
         $brands = Brand::orderBy('nama_brand')->get();
 
+        // Get the highest price for dynamic price filter
+        $highestPrice = Product::active()->inStock()->max('harga') ?? 10000000;
+
         return Inertia::render('detail-produk', [
             'product' => $product,
             'relatedProducts' => $relatedProducts,
             'categories' => $categories,
             'brands' => $brands,
+            'highestPrice' => $highestPrice,
             'filters' => [
                 'category_id' => null,
                 'brand_id' => null,
@@ -582,5 +596,68 @@ class HomeController extends Controller
             ->values();
 
         return $discountProducts;
+    }
+
+    /**
+     * Generate and download transaction proof PDF for user's order.
+     */
+    public function downloadTransactionProof(Pesanan $order)
+    {
+        try {
+            $user = Auth::user();
+
+            // Ensure the order belongs to the authenticated user
+            if ($order->user_id !== $user->id) {
+                abort(403, 'Unauthorized access to this order.');
+            }
+
+            // Load all necessary relationships
+            $order->load([
+                'user',
+                'details.product.category',
+                'details.product.brand',
+                'payment',
+                'shipping'
+            ]);
+
+            // Ensure storage link exists
+            if (!is_link(public_path('storage'))) {
+                Log::warning('Storage link not found. Run: php artisan storage:link');
+            }
+
+            // Generate PDF with options
+            $pdf = Pdf::loadView('pdf.transaction-proof', compact('order'));
+
+            // Set paper size and orientation with DomPDF options
+            $pdf->setPaper('A4', 'portrait')
+                ->setOptions([
+                    'isHtml5ParserEnabled' => true,
+                    'isPhpEnabled' => true,
+                    'isRemoteEnabled' => false,
+                    'defaultFont' => 'DejaVu Sans',
+                    'dpi' => 150,
+                    'enable_font_subsetting' => false,
+                    'chroot' => public_path(),
+                ]);
+
+
+
+            // Generate filename
+            $filename = 'transaction_proof_order_' . $order->id . '_' . now()->format('Y-m-d') . '.pdf';
+
+            // Return PDF download
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('PDF Generation Error: ' . $e->getMessage(), [
+                'order_id' => $order->id,
+                'user_id' => Auth::id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Return error response
+            return redirect()->back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+        }
     }
 }

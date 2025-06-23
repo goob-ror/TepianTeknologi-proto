@@ -4,7 +4,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Search, Filter, X, Download, Calendar, ShoppingCart, Package, Truck, CheckCircle, XCircle, Clock, FileSpreadsheet, AlertTriangle, ChevronsUpDown, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
+import { Eye, Search, Filter, X, Download, Calendar, ShoppingCart, Package, Truck, CheckCircle, XCircle, Clock, FileSpreadsheet, AlertTriangle, ChevronsUpDown, ChevronUp, ChevronDown, Loader2, FileText, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState, useEffect } from 'react';
@@ -44,6 +44,7 @@ interface Props {
         date_to?: string;
         sort_by?: string;
         sort_order?: string;
+        view_mode?: string;
     };
 }
 
@@ -66,6 +67,59 @@ const statusConfig = {
     dibatalkan: { label: 'Cancelled', color: 'border-red-500 text-red-300', icon: XCircle },
 };
 
+// Utility functions for real-time age tracking and hierarchical organization
+const getTimeAgo = (dateString: string): string => {
+    const now = new Date();
+    const orderDate = new Date(dateString);
+    const diffInSeconds = Math.floor((now.getTime() - orderDate.getTime()) / 1000);
+
+    if (diffInSeconds < 60) {
+        return `${diffInSeconds} detik yang lalu`;
+    } else if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes} menit yang lalu`;
+    } else if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours} jam yang lalu`;
+    } else if (diffInSeconds < 2592000) {
+        const days = Math.floor(diffInSeconds / 86400);
+        return `${days} hari yang lalu`;
+    } else if (diffInSeconds < 31536000) {
+        const months = Math.floor(diffInSeconds / 2592000);
+        return `${months} bulan yang lalu`;
+    } else {
+        const years = Math.floor(diffInSeconds / 31536000);
+        return `${years} tahun yang lalu`;
+    }
+};
+
+interface GroupedOrders {
+    [year: string]: {
+        [month: string]: {
+            [day: string]: Order[];
+        };
+    };
+}
+
+const groupOrdersByTime = (orders: Order[]): GroupedOrders => {
+    const grouped: GroupedOrders = {};
+
+    orders.forEach(order => {
+        const date = new Date(order.created_at);
+        const year = date.getFullYear().toString();
+        const month = date.toLocaleDateString('id-ID', { month: 'long' });
+        const day = date.getDate().toString().padStart(2, '0');
+
+        if (!grouped[year]) grouped[year] = {};
+        if (!grouped[year][month]) grouped[year][month] = {};
+        if (!grouped[year][month][day]) grouped[year][month][day] = [];
+
+        grouped[year][month][day].push(order);
+    });
+
+    return grouped;
+};
+
 export default function OrdersIndex({ orders, filters = {} }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [selectedStatus, setSelectedStatus] = useState(filters.status || 'all');
@@ -75,6 +129,9 @@ export default function OrdersIndex({ orders, filters = {} }: Props) {
     const [sortOrder, setSortOrder] = useState(filters.sort_order || 'asc');
     const [pendingInfo, setPendingInfo] = useState({ pending_count: 0, has_pending: false, message: 'Loading...' });
     const [isLoadingPending, setIsLoadingPending] = useState(true);
+    const [currentTime, setCurrentTime] = useState(new Date());
+    const [collapsedSections, setCollapsedSections] = useState<{[key: string]: boolean}>({});
+    const [viewMode, setViewMode] = useState<'table' | 'hierarchical'>((filters.view_mode as 'table' | 'hierarchical') || 'hierarchical');
 
     const handleSearch = () => {
         const params = new URLSearchParams();
@@ -85,6 +142,7 @@ export default function OrdersIndex({ orders, filters = {} }: Props) {
         if (dateTo) params.append('date_to', dateTo);
         if (sortBy) params.append('sort_by', sortBy);
         if (sortOrder) params.append('sort_order', sortOrder);
+        params.append('view_mode', viewMode);
 
         router.get(`/admin/orders?${params.toString()}`);
     };
@@ -178,6 +236,55 @@ export default function OrdersIndex({ orders, filters = {} }: Props) {
         return () => clearInterval(interval);
     }, []);
 
+    // Real-time clock update for age tracking
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 60000); // Update every minute
+        return () => clearInterval(interval);
+    }, []);
+
+    const toggleSection = (sectionKey: string) => {
+        setCollapsedSections(prev => ({
+            ...prev,
+            [sectionKey]: !prev[sectionKey]
+        }));
+    };
+
+    const handleViewModeChange = (newViewMode: 'table' | 'hierarchical') => {
+        setViewMode(newViewMode);
+
+        // Trigger search with new view mode
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (selectedStatus && selectedStatus !== 'all') params.append('status', selectedStatus);
+        if (dateFrom) params.append('date_from', dateFrom);
+        if (dateTo) params.append('date_to', dateTo);
+        if (sortBy) params.append('sort_by', sortBy);
+        if (sortOrder) params.append('sort_order', sortOrder);
+        params.append('view_mode', newViewMode);
+
+        router.get(`/admin/orders?${params.toString()}`);
+    };
+
+    const handleExportPeriod = (periodType: 'year' | 'month' | 'day', year: string, month?: string, day?: string) => {
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (selectedStatus && selectedStatus !== 'all') params.append('status', selectedStatus);
+        params.append('period_type', periodType);
+        params.append('year', year);
+        if (month) params.append('month', month);
+        if (day) params.append('day', day);
+
+        // Create a temporary link to trigger download
+        const link = document.createElement('a');
+        link.href = `/admin/orders/export-period?${params.toString()}`;
+        link.download = `orders_export_${periodType}_${year}${month ? '_' + month : ''}${day ? '_' + day : ''}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
@@ -193,6 +300,28 @@ export default function OrdersIndex({ orders, filters = {} }: Props) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Orders Management</h1>
                     <div className="flex gap-2">
+                        {/* View Mode Toggle */}
+                        <div className="flex border rounded-lg overflow-hidden">
+                            <Button
+                                variant={viewMode === 'hierarchical' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => handleViewModeChange('hierarchical')}
+                                className="rounded-none border-0"
+                            >
+                                <Calendar className="h-4 w-4 mr-1" />
+                                Timeline
+                            </Button>
+                            <Button
+                                variant={viewMode === 'table' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => handleViewModeChange('table')}
+                                className="rounded-none border-0"
+                            >
+                                <Package className="h-4 w-4 mr-1" />
+                                Table
+                            </Button>
+                        </div>
+
                         {/* Export Dropdown */}
                         <div className="relative group">
                             <Button variant="outline" className="flex items-center gap-2">
@@ -307,7 +436,7 @@ export default function OrdersIndex({ orders, filters = {} }: Props) {
                                 <div>
                                     <label className="text-sm font-medium mb-2 block">From Date</label>
                                     <div className="relative">
-                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 !text-white" style={{ color: 'white' }} />
                                         <Input
                                             type="date"
                                             value={dateFrom}
@@ -321,7 +450,7 @@ export default function OrdersIndex({ orders, filters = {} }: Props) {
                                 <div>
                                     <label className="text-sm font-medium mb-2 block">To Date</label>
                                     <div className="relative">
-                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 !text-white" style={{ color: 'white' }} />
                                         <Input
                                             type="date"
                                             value={dateTo}
@@ -341,132 +470,305 @@ export default function OrdersIndex({ orders, filters = {} }: Props) {
                             </div>
                         </div>
 
-                        <div className="overflow-x-auto">
-                            <table className="w-full table-auto">
-                                <thead>
-                                    <tr className="border-b">
-                                        <th className="text-left p-3">
-                                            <button
-                                                onClick={() => handleSort('id')}
-                                                className="flex items-center gap-2 hover:text-blue-600 transition-colors font-medium text-blue-300"
-                                            >
-                                                Order ID
-                                                {getSortIcon('id')}
-                                            </button>
-                                        </th>
-                                        <th className="text-left p-3 font-medium text-green-300">Customer</th>
-                                        <th className="text-left p-3">
-                                            <button
-                                                onClick={() => handleSort('nama_penerima')}
-                                                className="flex items-center gap-2 hover:text-blue-600 transition-colors font-medium text-yellow-300"
-                                            >
-                                                Recipient
-                                                {getSortIcon('nama_penerima')}
-                                            </button>
-                                        </th>
-                                        <th className="text-left p-3">
-                                            <button
-                                                onClick={() => handleSort('status')}
-                                                className="flex items-center gap-2 hover:text-blue-600 transition-colors font-medium text-purple-300"
-                                            >
-                                                Status
-                                                {getSortIcon('status')}
-                                            </button>
-                                        </th>
-                                        <th className="text-left p-3">
-                                            <button
-                                                onClick={() => handleSort('total_harga')}
-                                                className="flex items-center gap-2 hover:text-blue-600 transition-colors font-medium text-pink-300"
-                                            >
-                                                Total
-                                                {getSortIcon('total_harga')}
-                                            </button>
-                                        </th>
-                                        <th className="text-left p-3">
-                                            <button
-                                                onClick={() => handleSort('created_at')}
-                                                className="flex items-center gap-2 hover:text-blue-600 transition-colors font-medium text-cyan-300"
-                                            >
-                                                Date
-                                                {getSortIcon('created_at')}
-                                            </button>
-                                        </th>
-                                        <th className="text-right p-3 font-medium text-orange-300">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {!orders ? (
-                                        <tr>
-                                            <td colSpan={7} className="text-center py-8 text-gray-500">
-                                                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
-                                                Loading orders...
-                                            </td>
+                        {/* Conditional rendering based on view mode */}
+                        {viewMode === 'table' ? (
+                            <div className="overflow-x-auto">
+                                <table className="w-full table-auto">
+                                    <thead>
+                                        <tr className="border-b">
+                                            <th className="text-left p-3">
+                                                <button
+                                                    onClick={() => handleSort('id')}
+                                                    className="flex items-center gap-2 hover:text-blue-600 transition-colors font-medium text-blue-300"
+                                                >
+                                                    Order ID
+                                                    {getSortIcon('id')}
+                                                </button>
+                                            </th>
+                                            <th className="text-left p-3 font-medium text-green-300">Customer</th>
+                                            <th className="text-left p-3">
+                                                <button
+                                                    onClick={() => handleSort('nama_penerima')}
+                                                    className="flex items-center gap-2 hover:text-blue-600 transition-colors font-medium text-yellow-300"
+                                                >
+                                                    Recipient
+                                                    {getSortIcon('nama_penerima')}
+                                                </button>
+                                            </th>
+                                            <th className="text-left p-3">
+                                                <button
+                                                    onClick={() => handleSort('status')}
+                                                    className="flex items-center gap-2 hover:text-blue-600 transition-colors font-medium text-purple-300"
+                                                >
+                                                    Status
+                                                    {getSortIcon('status')}
+                                                </button>
+                                            </th>
+                                            <th className="text-left p-3">
+                                                <button
+                                                    onClick={() => handleSort('total_harga')}
+                                                    className="flex items-center gap-2 hover:text-blue-600 transition-colors font-medium text-pink-300"
+                                                >
+                                                    Total
+                                                    {getSortIcon('total_harga')}
+                                                </button>
+                                            </th>
+                                            <th className="text-left p-3">
+                                                <button
+                                                    onClick={() => handleSort('created_at')}
+                                                    className="flex items-center gap-2 hover:text-blue-600 transition-colors font-medium text-cyan-300"
+                                                >
+                                                    Date / Age
+                                                    {getSortIcon('created_at')}
+                                                </button>
+                                            </th>
+                                            <th className="text-right p-3 font-medium text-orange-300">Actions</th>
                                         </tr>
-                                    ) : orders?.data && Array.isArray(orders.data) && orders.data.length > 0 ? orders.data.map((order) => {
-                                        const StatusIcon = statusConfig[order.status]?.icon || Clock;
-                                        return (
-                                            <tr key={order.id} className="border-b hover:bg-muted/20 transition-colors">
-                                                <td className="p-3">
-                                                    <div className="font-medium">#{order.id}</div>
-                                                </td>
-                                                <td className="p-3">
-                                                    <div>
-                                                        <div className="font-medium">{order.user?.nama_lengkap || order.user?.name || 'N/A'}</div>
-                                                        <div className="text-sm text-gray-400">{order.user?.email || 'N/A'}</div>
-                                                    </div>
-                                                </td>
-                                                <td className="p-3">
-                                                    <div>
-                                                        <div className="font-medium">{order.nama_penerima}</div>
-                                                        {order.no_hp_penerima && (
-                                                            <div className="text-sm text-gray-400">{order.no_hp_penerima}</div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="p-3">
-                                                    <Badge variant="outline" className={statusConfig[order.status]?.color || 'border-gray-500 text-gray-300'}>
-                                                        <StatusIcon className="h-3 w-3 mr-1" />
-                                                        {statusConfig[order.status]?.label || order.status}
-                                                    </Badge>
-                                                </td>
-                                                <td className="p-3">
-                                                    <div className="font-medium">{formatCurrency(order.total_harga)}</div>
-                                                </td>
-                                                <td className="p-3">
-                                                    <div className="text-sm">
-                                                        {new Date(order.created_at).toLocaleDateString('id-ID', {
-                                                            year: 'numeric',
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                            hour: '2-digit',
-                                                            minute: '2-digit'
-                                                        })}
-                                                    </div>
-                                                </td>
-                                                <td className="p-3">
-                                                    <div className="flex gap-2 justify-end">
-                                                        <Link href={`/admin/orders/${order.id}`}>
-                                                            <Button variant="outline" size="sm">
-                                                                <Eye className="h-4 w-4" />
-                                                            </Button>
-                                                        </Link>
-                                                    </div>
+                                    </thead>
+                                    <tbody>
+                                        {!orders ? (
+                                            <tr>
+                                                <td colSpan={7} className="text-center py-8 text-gray-500">
+                                                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                                                    Loading orders...
                                                 </td>
                                             </tr>
-                                        );
-                                    }) : (
-                                        <tr>
-                                            <td colSpan={7} className="text-center py-8 text-gray-500">
-                                                No orders found. Orders will appear here when customers place them.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                        ) : orders?.data && Array.isArray(orders.data) && orders.data.length > 0 ? orders.data.map((order) => {
+                                            const StatusIcon = statusConfig[order.status]?.icon || Clock;
+                                            return (
+                                                <tr key={order.id} className="border-b hover:bg-muted/20 transition-colors">
+                                                    <td className="p-3">
+                                                        <div className="font-medium">#{order.id}</div>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <div>
+                                                            <div className="font-medium">{order.user?.nama_lengkap || order.user?.name || 'N/A'}</div>
+                                                            <div className="text-sm text-gray-400">{order.user?.email || 'N/A'}</div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <div>
+                                                            <div className="font-medium">{order.nama_penerima}</div>
+                                                            {order.no_hp_penerima && (
+                                                                <div className="text-sm text-gray-400">{order.no_hp_penerima}</div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <Badge variant="outline" className={statusConfig[order.status]?.color || 'border-gray-500 text-gray-300'}>
+                                                            <StatusIcon className="h-3 w-3 mr-1" />
+                                                            {statusConfig[order.status]?.label || order.status}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <div className="font-medium">{formatCurrency(order.total_harga)}</div>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <div className="text-sm">
+                                                            <div className="font-medium text-cyan-300">{getTimeAgo(order.created_at)}</div>
+                                                            <div className="text-xs text-gray-400">
+                                                                {new Date(order.created_at).toLocaleDateString('id-ID', {
+                                                                    year: 'numeric',
+                                                                    month: 'short',
+                                                                    day: 'numeric',
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit'
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <div className="flex gap-2 justify-end">
+                                                            <Link href={`/admin/orders/${order.id}`}>
+                                                                <Button variant="outline" size="sm" title="View Details">
+                                                                    <Eye className="h-4 w-4" />
+                                                                </Button>
+                                                            </Link>
+                                                            <a href={`/admin/orders/${order.id}/transaction-proof`} target="_blank" rel="noopener noreferrer">
+                                                                <Button variant="outline" size="sm" title="Download Transaction Proof">
+                                                                    <FileText className="h-4 w-4" />
+                                                                </Button>
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        }) : (
+                                            <tr>
+                                                <td colSpan={7} className="text-center py-8 text-gray-500">
+                                                    No orders found. Orders will appear here when customers place them.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            /* Hierarchical Timeline View */
+                            <div className="space-y-6">
+                                {!orders ? (
+                                    <div className="text-center py-8 text-gray-500">
+                                        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                                        Loading orders...
+                                    </div>
+                                ) : orders?.data && Array.isArray(orders.data) && orders.data.length > 0 ? (
+                                    (() => {
+                                        const groupedOrders = groupOrdersByTime(orders.data);
+                                        return Object.keys(groupedOrders).sort((a, b) => parseInt(b) - parseInt(a)).map(year => (
+                                            <div key={year} className="border rounded-lg overflow-hidden">
+                                                <div className="flex items-center justify-between p-4 bg-muted/20">
+                                                    <button
+                                                        onClick={() => toggleSection(`year-${year}`)}
+                                                        className="flex items-center gap-2 hover:bg-muted/30 transition-colors p-2 rounded"
+                                                    >
+                                                        <h3 className="text-lg font-semibold text-blue-300 flex items-center gap-2">
+                                                            <Calendar className="h-5 w-5" />
+                                                            Tahun {year}
+                                                        </h3>
+                                                        <ChevronRight className={`h-5 w-5 transition-transform ${collapsedSections[`year-${year}`] !== false ? '' : 'rotate-90'}`} />
+                                                    </button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleExportPeriod('year', year)}
+                                                        className="flex items-center gap-1"
+                                                        title="Download CSV untuk tahun ini"
+                                                    >
+                                                        <Download className="h-3 w-3" />
+                                                        CSV
+                                                    </Button>
+                                                </div>
+                                                {collapsedSections[`year-${year}`] === false && (
+                                                    <div className="p-4 space-y-4">
+                                                        {Object.keys(groupedOrders[year]).map(month => (
+                                                            <div key={month} className="border rounded-lg overflow-hidden">
+                                                                <div className="flex items-center justify-between p-3 bg-muted/10">
+                                                                    <button
+                                                                        onClick={() => toggleSection(`month-${year}-${month}`)}
+                                                                        className="flex items-center gap-2 hover:bg-muted/20 transition-colors p-2 rounded"
+                                                                    >
+                                                                        <h4 className="text-md font-medium text-green-300 flex items-center gap-2">
+                                                                            <Package className="h-4 w-4" />
+                                                                            {month} {year}
+                                                                        </h4>
+                                                                        <ChevronRight className={`h-4 w-4 transition-transform ${collapsedSections[`month-${year}-${month}`] !== false ? '' : 'rotate-90'}`} />
+                                                                    </button>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={() => handleExportPeriod('month', year, month)}
+                                                                        className="flex items-center gap-1"
+                                                                        title="Download CSV untuk bulan ini"
+                                                                    >
+                                                                        <Download className="h-3 w-3" />
+                                                                        CSV
+                                                                    </Button>
+                                                                </div>
+                                                                {collapsedSections[`month-${year}-${month}`] === false && (
+                                                                    <div className="p-3 space-y-3">
+                                                                        {Object.keys(groupedOrders[year][month]).sort((a, b) => parseInt(b) - parseInt(a)).map(day => (
+                                                                            <div key={day} className="border rounded-lg overflow-hidden">
+                                                                                <div className="flex items-center justify-between p-2 bg-muted/5">
+                                                                                    <button
+                                                                                        onClick={() => toggleSection(`day-${year}-${month}-${day}`)}
+                                                                                        className="flex items-center gap-2 hover:bg-muted/10 transition-colors p-1 rounded"
+                                                                                    >
+                                                                                        <h5 className="text-sm font-medium text-yellow-300 flex items-center gap-2">
+                                                                                            <Clock className="h-3 w-3" />
+                                                                                            {day} {month} {year} ({groupedOrders[year][month][day].length} pesanan)
+                                                                                        </h5>
+                                                                                        <ChevronRight className={`h-3 w-3 transition-transform ${collapsedSections[`day-${year}-${month}-${day}`] !== false ? '' : 'rotate-90'}`} />
+                                                                                    </button>
+                                                                                    <Button
+                                                                                        variant="outline"
+                                                                                        size="sm"
+                                                                                        onClick={() => handleExportPeriod('day', year, month, day)}
+                                                                                        className="flex items-center gap-1 text-xs px-2 py-1"
+                                                                                        title="Download CSV untuk hari ini"
+                                                                                    >
+                                                                                        <Download className="h-3 w-3" />
+                                                                                        CSV
+                                                                                    </Button>
+                                                                                </div>
+                                                                                {collapsedSections[`day-${year}-${month}-${day}`] === false && (
+                                                                                    <div className="p-2 space-y-2">
+                                                                                        {groupedOrders[year][month][day].map(order => {
+                                                                                            const StatusIcon = statusConfig[order.status]?.icon || Clock;
+                                                                                            return (
+                                                                                                <div key={order.id} className="border rounded-lg p-3 hover:bg-muted/10 transition-colors">
+                                                                                                    <div className="flex items-center justify-between">
+                                                                                                        <div className="flex-1">
+                                                                                                            <div className="flex items-center gap-3 mb-2">
+                                                                                                                <span className="font-medium text-blue-300">#{order.id}</span>
+                                                                                                                <Badge variant="outline" className={statusConfig[order.status]?.color || 'border-gray-500 text-gray-300'}>
+                                                                                                                    <StatusIcon className="h-3 w-3 mr-1" />
+                                                                                                                    {statusConfig[order.status]?.label || order.status}
+                                                                                                                </Badge>
+                                                                                                                <span className="text-sm font-medium text-pink-300">{formatCurrency(order.total_harga)}</span>
+                                                                                                            </div>
+                                                                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                                                                                                <div>
+                                                                                                                    <span className="text-gray-400">Customer: </span>
+                                                                                                                    <span className="text-green-300">{order.user?.nama_lengkap || order.user?.name || 'N/A'}</span>
+                                                                                                                </div>
+                                                                                                                <div>
+                                                                                                                    <span className="text-gray-400">Recipient: </span>
+                                                                                                                    <span className="text-yellow-300">{order.nama_penerima}</span>
+                                                                                                                </div>
+                                                                                                                <div>
+                                                                                                                    <span className="text-gray-400">Age: </span>
+                                                                                                                    <span className="text-cyan-300 font-medium">{getTimeAgo(order.created_at)}</span>
+                                                                                                                </div>
+                                                                                                                <div>
+                                                                                                                    <span className="text-gray-400">Time: </span>
+                                                                                                                    <span className="text-gray-300">
+                                                                                                                        {new Date(order.created_at).toLocaleTimeString('id-ID', {
+                                                                                                                            hour: '2-digit',
+                                                                                                                            minute: '2-digit'
+                                                                                                                        })}
+                                                                                                                    </span>
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                        <div className="flex gap-2">
+                                                                                                            <Link href={`/admin/orders/${order.id}`}>
+                                                                                                                <Button variant="outline" size="sm" title="View Details">
+                                                                                                                    <Eye className="h-4 w-4" />
+                                                                                                                </Button>
+                                                                                                            </Link>
+                                                                                                            <a href={`/admin/orders/${order.id}/transaction-proof`} target="_blank" rel="noopener noreferrer">
+                                                                                                                <Button variant="outline" size="sm" title="Download Transaction Proof">
+                                                                                                                    <FileText className="h-4 w-4" />
+                                                                                                                </Button>
+                                                                                                            </a>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            );
+                                                                                        })}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ));
+                                    })()
+                                ) : (
+                                    <div className="text-center py-8 text-gray-500">
+                                        No orders found. Orders will appear here when customers place them.
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
-                        {/* Pagination */}
-                        {orders?.last_page && orders.last_page > 1 && (
+                        {/* Pagination - only show for table view */}
+                        {viewMode === 'table' && orders?.last_page && orders.last_page > 1 && (
                             <div className="flex items-center justify-between mt-6">
                                 <div className="text-sm text-gray-400">
                                     Showing {((orders.current_page - 1) * orders.per_page) + 1} to {Math.min(orders.current_page * orders.per_page, orders.total)} of {orders.total} orders

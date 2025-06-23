@@ -22,6 +22,7 @@ interface KatalogProps {
   };
   categories: Category[];
   brands: Brand[];
+  highestPrice: number;
   filters: {
     category_id?: string;
     brand_id?: string;
@@ -33,7 +34,7 @@ interface KatalogProps {
   };
 }
 
-export default function Katalog({ products, categories, brands, filters }: KatalogProps) {
+export default function Katalog({ products, categories, brands, highestPrice, filters }: KatalogProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function Katalog({ products, categories, brands, filters }: Katal
           <CatalogSection
             products={products}
             filters={filters}
+            highestPrice={highestPrice}
           />
         </div>
       </main>

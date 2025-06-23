@@ -14,6 +14,7 @@ interface DetailProdukProps {
   relatedProducts: Product[];
   categories: Category[];
   brands: Brand[];
+  highestPrice: number;
   filters: {
     category_id?: string;
     brand_id?: string;
@@ -25,7 +26,7 @@ interface DetailProdukProps {
   };
 }
 
-export default function DetailProduk({ product, relatedProducts, categories, brands, filters }: DetailProdukProps) {
+export default function DetailProduk({ product, relatedProducts, categories, brands, highestPrice, filters }: DetailProdukProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -64,7 +65,7 @@ export default function DetailProduk({ product, relatedProducts, categories, bra
             filters={filters}
           />
           <section className="section-detail flex flex-col">
-            <DetailProductSection product={product} />
+            <DetailProductSection product={product} highestPrice={highestPrice} />
             <ProductDescription product={product} />
             <RelatedProducts products={relatedProducts} />
           </section>

@@ -17,7 +17,7 @@ return new class extends Migration
                     ->constrained('pesanan')
                     ->onDelete('cascade');
             $table->string('metode', 100);
-            $table->string('bukti_transfer', 255)->nullable();
+            $table->string('bukti_pembayaran', 255)->nullable();
             $table->enum('status', ['menunggu_validasi', 'valid', 'tidak_valid'])
                     ->default('menunggu_validasi');
             $table->decimal('jumlah_bayar', 12, 2)->unsigned();

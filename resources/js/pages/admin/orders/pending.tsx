@@ -57,6 +57,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function PendingOrders({ orders, filters = {} }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
+    const [currentTime, setCurrentTime] = useState(new Date());
 
     const handleSearch = () => {
         const params = new URLSearchParams();
@@ -76,12 +77,20 @@ export default function PendingOrders({ orders, filters = {} }: Props) {
                 catatan: 'Quick approved from pending orders page'
             }, {
                 onSuccess: () => {
-                    // Refresh the page to update the list
                     router.reload();
                 }
             });
         }
     };
+
+    // Real-time clock update every 30 seconds for more accurate age display
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 30000); // Update every 30 seconds
+
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         const delayedSearch = setTimeout(() => {
@@ -93,29 +102,34 @@ export default function PendingOrders({ orders, filters = {} }: Props) {
         return () => clearTimeout(delayedSearch);
     }, [searchTerm]);
 
-    const formatCurrency = (amount: number) => {
+    const formatCurrency = (amount: number | string | null | undefined) => {
+        const numericAmount = parseFloat(amount?.toString() || '0') || 0;
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
             currency: 'IDR',
             minimumFractionDigits: 0,
-        }).format(amount);
+        }).format(numericAmount);
     };
 
     const getOrderAge = (createdAt: string) => {
-        const now = new Date();
         const orderDate = new Date(createdAt);
-        const diffInHours = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60 * 60));
+        const diffInMs = currentTime.getTime() - orderDate.getTime();
+        const diffInSeconds = Math.floor(diffInMs / 1000);
+        const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+        const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+        const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
-        if (diffInHours < 1) return 'Just now';
+        if (diffInSeconds < 30) return 'Just now';
+        if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
+        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
         if (diffInHours < 24) return `${diffInHours}h ago`;
-        const diffInDays = Math.floor(diffInHours / 24);
-        return `${diffInDays}d ago`;
+        if (diffInDays === 1) return '1 day ago';
+        return `${diffInDays} days ago`;
     };
 
     const isUrgent = (createdAt: string) => {
-        const now = new Date();
         const orderDate = new Date(createdAt);
-        const diffInHours = (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60);
+        const diffInHours = (currentTime.getTime() - orderDate.getTime()) / (1000 * 60 * 60);
         return diffInHours > 24; // Orders older than 24 hours are urgent
     };
 
@@ -174,7 +188,10 @@ export default function PendingOrders({ orders, filters = {} }: Props) {
                                 <div>
                                     <p className="text-sm text-gray-400">Total Value</p>
                                     <p className="text-lg font-bold text-green-400">
-                                        {formatCurrency(orders.data.reduce((sum, order) => sum + order.total_harga, 0))}
+                                        {formatCurrency(orders.data.reduce((sum, order) => {
+                                            const price = parseFloat(order.total_harga?.toString() || '0');
+                                            return sum + (isNaN(price) ? 0 : price);
+                                        }, 0))}
                                     </p>
                                 </div>
                             </div>
@@ -276,7 +293,7 @@ export default function PendingOrders({ orders, filters = {} }: Props) {
                                                         </Link>
                                                         <Button
                                                             size="sm"
-                                                            onClick={() => handleQuickApprove(order.id, order.user.nama_lengkap || order.user.name)}
+                                                            onClick={() => handleQuickApprove(order.id, order.user.nama_lengkap || order.user.name || 'Unknown')}
                                                             className="admin-bg-green"
                                                             title="Quick Approve"
                                                         >

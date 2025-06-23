@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Save, User, MapPin, Phone, Package, CreditCard, Truck, Clock, CheckCircle, XCircle, Edit } from 'lucide-react';
+import { ArrowLeft, Save, User, MapPin, Phone, Package, CreditCard, Truck, Clock, CheckCircle, XCircle, Edit, Upload, FileText, Eye } from 'lucide-react';
 
 interface OrderDetail {
     id: number;
@@ -49,10 +49,12 @@ interface Order {
     payment?: {
         id: number;
         metode: string;
-        bukti_transfer?: string;
+        bukti_pembayaran?: string;
         status: string;
         jumlah_bayar: number;
         tanggal_bayar?: string;
+        validated_at?: string;
+        catatan_validasi?: string;
     };
     shipping?: {
         id: number;
@@ -101,9 +103,40 @@ export default function ShowOrder({ order }: Props) {
         },
     });
 
+    // Payment proof upload form
+    const { data: paymentData, setData: setPaymentData, post: postPayment, processing: paymentProcessing, errors: paymentErrors } = useForm({
+        bukti_pembayaran: null as File | null,
+        metode: order.payment?.metode || 'WhatsApp Transfer',
+        jumlah_bayar: order.total_harga,
+        catatan_validasi: '',
+    });
+
+    // Payment validation form
+    const { data: validationData, setData: setValidationData, patch: patchValidation, processing: validationProcessing } = useForm({
+        status: order.payment?.status || 'menunggu_validasi',
+        catatan_validasi: order.payment?.catatan_validasi || '',
+    });
+
     const handleUpdateStatus = (e: React.FormEvent) => {
         e.preventDefault();
         patch(`/admin/orders/${order.id}/status`);
+    };
+
+    const handleUploadPaymentProof = (e: React.FormEvent) => {
+        e.preventDefault();
+        postPayment(`/admin/orders/${order.id}/upload-payment-proof`, {
+            forceFormData: true,
+        });
+    };
+
+    const handleValidatePayment = (e: React.FormEvent) => {
+        e.preventDefault();
+        patchValidation(`/admin/orders/${order.id}/validate-payment`);
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        setPaymentData('bukti_pembayaran', file);
     };
 
     const formatCurrency = (amount: number) => {
@@ -312,38 +345,213 @@ export default function ShowOrder({ order }: Props) {
                         </Card>
 
                         {/* Payment Information */}
-                        {order.payment && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-yellow-300 flex items-center gap-2">
-                                        <CreditCard className="h-5 w-5" />
-                                        Payment Information
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-400">Payment Method</label>
-                                        <p className="font-medium">{order.payment.metode}</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-400">Amount Paid</label>
-                                        <p className="font-medium">{formatCurrency(order.payment.jumlah_bayar)}</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-400">Payment Status</label>
-                                        <p className="font-medium">{order.payment.status}</p>
-                                    </div>
-                                    {order.payment.tanggal_bayar && (
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-400">Payment Date</label>
-                                            <p className="font-medium">
-                                                {new Date(order.payment.tanggal_bayar).toLocaleString('id-ID')}
-                                            </p>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-yellow-300 flex items-center gap-2">
+                                    <CreditCard className="h-5 w-5" />
+                                    Payment Information
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                {order.payment ? (
+                                    <>
+                                        {/* Existing Payment Info */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-400">Payment Method</label>
+                                                <p className="font-medium">{order.payment.metode}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-400">Amount Paid</label>
+                                                <p className="font-medium">{formatCurrency(order.payment.jumlah_bayar)}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-400">Payment Status</label>
+                                                <p className="font-medium">{order.payment.status}</p>
+                                            </div>
+                                            {order.payment.tanggal_bayar && (
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-400">Payment Date</label>
+                                                    <p className="font-medium">
+                                                        {new Date(order.payment.tanggal_bayar).toLocaleString('id-ID')}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        )}
+
+                                        {/* Payment Proof Display */}
+                                        {order.payment.bukti_pembayaran && (
+                                            <div className="border-t pt-4">
+                                                <label className="text-sm font-medium text-gray-400 mb-2 block">Bukti Pembayaran</label>
+                                                <div className="flex items-center gap-4">
+                                                    <img
+                                                        src={`/storage/${order.payment.bukti_pembayaran}`}
+                                                        alt="Bukti Pembayaran"
+                                                        className="w-32 h-32 object-cover rounded-lg border"
+                                                    />
+                                                    <div className="flex flex-col gap-2">
+                                                        <a
+                                                            href={`/storage/${order.payment.bukti_pembayaran}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center gap-2 text-blue-400 hover:text-blue-300"
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                            View Full Image
+                                                        </a>
+                                                        <a
+                                                            href={`/admin/orders/${order.id}/transaction-proof`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center gap-2 text-green-400 hover:text-green-300"
+                                                        >
+                                                            <FileText className="h-4 w-4" />
+                                                            Download Transaction Proof
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Payment Validation */}
+                                        {order.payment.status === 'menunggu_validasi' && (
+                                            <div className="border-t pt-4">
+                                                <h4 className="font-medium mb-3">Validate Payment</h4>
+                                                <form onSubmit={handleValidatePayment} className="space-y-4">
+                                                    <div>
+                                                        <Label htmlFor="validation_status">Validation Status</Label>
+                                                        <Select
+                                                            value={validationData.status}
+                                                            onValueChange={(value) => setValidationData('status', value)}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select validation status" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="valid">Valid</SelectItem>
+                                                                <SelectItem value="tidak_valid">Invalid</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div>
+                                                        <Label htmlFor="validation_notes">Validation Notes</Label>
+                                                        <Textarea
+                                                            id="validation_notes"
+                                                            value={validationData.catatan_validasi}
+                                                            onChange={(e) => setValidationData('catatan_validasi', e.target.value)}
+                                                            placeholder="Add validation notes..."
+                                                            rows={3}
+                                                        />
+                                                    </div>
+                                                    <Button type="submit" disabled={validationProcessing}>
+                                                        {validationProcessing ? 'Validating...' : 'Validate Payment'}
+                                                    </Button>
+                                                </form>
+                                            </div>
+                                        )}
+
+                                        {/* Validation Info */}
+                                        {order.payment.validated_at && (
+                                            <div className="border-t pt-4">
+                                                <label className="text-sm font-medium text-gray-400">Validated At</label>
+                                                <p className="font-medium">
+                                                    {new Date(order.payment.validated_at).toLocaleString('id-ID')}
+                                                </p>
+                                                {order.payment.catatan_validasi && (
+                                                    <div className="mt-2">
+                                                        <label className="text-sm font-medium text-gray-400">Validation Notes</label>
+                                                        <p className="font-medium">{order.payment.catatan_validasi}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* Upload Payment Proof Form */}
+                                        <div>
+                                            <h4 className="font-medium mb-3">Upload Payment Proof</h4>
+                                            <form onSubmit={handleUploadPaymentProof} className="space-y-4">
+                                                <div>
+                                                    <Label htmlFor="payment_method">Payment Method</Label>
+                                                    <Input
+                                                        id="payment_method"
+                                                        value={paymentData.metode}
+                                                        onChange={(e) => setPaymentData('metode', e.target.value)}
+                                                        placeholder="e.g., WhatsApp Transfer, Bank Transfer"
+                                                    />
+                                                    {paymentErrors.metode && (
+                                                        <p className="text-red-400 text-sm mt-1">{paymentErrors.metode}</p>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="payment_amount">Payment Amount</Label>
+                                                    <div className="relative">
+                                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">Rp</span>
+                                                        <Input
+                                                            id="payment_amount"
+                                                            type="text"
+                                                            value={paymentData.jumlah_bayar.toLocaleString('id-ID')}
+                                                            readOnly
+                                                            className="pl-8 bg-gray-100 cursor-not-allowed"
+                                                        />
+                                                    </div>
+                                                    <p className="text-xs text-gray-400 mt-1">
+                                                        Amount: {formatCurrency(paymentData.jumlah_bayar)}
+                                                    </p>
+                                                    {paymentErrors.jumlah_bayar && (
+                                                        <p className="text-red-400 text-sm mt-1">{paymentErrors.jumlah_bayar}</p>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="payment_proof">Payment Proof Image</Label>
+                                                    <div className="relative">
+                                                        <input
+                                                            id="payment_proof"
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={handleFileChange}
+                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                        />
+                                                        <div className="flex items-center">
+                                                            <button
+                                                                type="button"
+                                                                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                                            >
+                                                                Choose File
+                                                            </button>
+                                                            <span className="ml-3 text-gray-400 text-sm">
+                                                                {paymentData.bukti_pembayaran ? paymentData.bukti_pembayaran.name : 'No file chosen'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    {paymentErrors.bukti_pembayaran && (
+                                                        <p className="text-red-400 text-sm mt-1">{paymentErrors.bukti_pembayaran}</p>
+                                                    )}
+                                                    <p className="text-sm text-gray-400 mt-1">
+                                                        Upload screenshot of payment proof (max 5MB)
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="payment_notes">Notes</Label>
+                                                    <Textarea
+                                                        id="payment_notes"
+                                                        value={paymentData.catatan_validasi}
+                                                        onChange={(e) => setPaymentData('catatan_validasi', e.target.value)}
+                                                        placeholder="Add any notes about the payment..."
+                                                        rows={3}
+                                                    />
+                                                </div>
+                                                <Button type="submit" disabled={paymentProcessing} className="flex items-center gap-2">
+                                                    <Upload className="h-4 w-4" />
+                                                    {paymentProcessing ? 'Uploading...' : 'Upload Payment Proof'}
+                                                </Button>
+                                            </form>
+                                        </div>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
 
                         {/* Shipping Information */}
                         {order.shipping && (

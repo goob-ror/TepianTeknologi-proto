@@ -32,13 +32,38 @@ interface ProductItemProps {
   item: CartItem;
   onQuantityChange: (id: string, newQuantity: number) => void;
   onCheckboxChange: (id: string, checked: boolean) => void;
+  onRemove: (id: string) => void;
 }
 
-const ProductItem = ({ item, onQuantityChange, onCheckboxChange }: ProductItemProps) => {
+const ProductItem = ({ item, onQuantityChange, onCheckboxChange, onRemove }: ProductItemProps) => {
   const handleWhatsAppContact = () => {
     const message = `Halo, saya ingin menanyakan tentang produk :- ${item.name}`;
     const whatsappUrl = `https://wa.me/62895360022327?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+  };
+
+  const handleRemove = () => {
+    Swal.fire({
+      title: 'Hapus Produk?',
+      text: `Hapus "${item.name}" dari keranjang?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Hapus',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        onRemove(item.id);
+        Swal.fire({
+          title: 'Dihapus!',
+          text: 'Produk berhasil dihapus',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+    });
   };
 
   const handleQuantityChange = async (change: number) => {
@@ -69,8 +94,8 @@ const ProductItem = ({ item, onQuantityChange, onCheckboxChange }: ProductItemPr
         fontFamily: 'var(--main-font)'
       }}
     >
-      {/* Product Checkbox */}
-      <div className="flex items-center justify-center pt-6 pl-4">
+      {/* Product Checkbox and Remove Button */}
+      <div className="flex flex-col justify-around items-center pt-6 pl-4 pb-6">
         <div className="relative flex items-center justify-center">
           <input
             type="checkbox"
@@ -103,6 +128,28 @@ const ProductItem = ({ item, onQuantityChange, onCheckboxChange }: ProductItemPr
             />
           )}
         </div>
+
+        {/* Remove Button */}
+        <button
+          onClick={handleRemove}
+          className="cursor-pointer transition-all duration-300 hover:scale-110 hover:bg-red-600"
+          style={{
+            width: '24px',
+            height: '24px',
+            backgroundColor: '#dc2626',
+            border: 'none',
+            borderRadius: '50%',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          title="Hapus dari keranjang"
+        >
+          ×
+        </button>
       </div>
 
       <img
@@ -259,11 +306,12 @@ interface CategorySectionProps {
   items: CartItem[];
   onQuantityChange: (id: string, newQuantity: number) => void;
   onProductCheckboxChange: (id: string, checked: boolean) => void;
+  onRemove: (id: string) => void;
   isChecked: boolean;
   onCategoryCheckboxChange: (category: string, checked: boolean) => void;
 }
 
-const CategorySection = ({ title, items, onQuantityChange, onProductCheckboxChange, isChecked, onCategoryCheckboxChange }: CategorySectionProps) => {
+const CategorySection = ({ title, items, onQuantityChange, onProductCheckboxChange, onRemove, isChecked, onCategoryCheckboxChange }: CategorySectionProps) => {
   return (
     <div
       className="w-full mb-8"
@@ -333,6 +381,7 @@ const CategorySection = ({ title, items, onQuantityChange, onProductCheckboxChan
             item={item}
             onQuantityChange={onQuantityChange}
             onCheckboxChange={onProductCheckboxChange}
+            onRemove={onRemove}
           />
         ))}
       </div>
@@ -611,7 +660,7 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
       font-size: var(--font-size-medium) !important;
     }
   `;
-  const { cartItems, updateItemChecked, updateItemQuantity, updateCartItem, removeCheckedItems } = useCart();
+  const { cartItems, updateItemChecked, updateItemQuantity, updateCartItem, removeCheckedItems, removeFromCart } = useCart();
   const [categoryCheckedStates, setCategoryCheckedStates] = useState<{[key: string]: boolean}>({});
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
 
@@ -656,6 +705,21 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
         updateItemChecked(item.id, checked);
       }
     });
+  };
+
+  const handleRemoveItem = async (id: string) => {
+    try {
+      await removeFromCart(parseInt(id));
+    } catch (error) {
+      console.error('Error removing item from cart:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'Gagal menghapus produk dari keranjang',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        background: 'var(--secondary-color)',
+      });
+    }
   };
 
   const handlePayNow = async () => {
@@ -1053,6 +1117,7 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
                     items={categoryItems}
                     onQuantityChange={handleQuantityChange}
                     onProductCheckboxChange={handleProductCheckboxChange}
+                    onRemove={handleRemoveItem}
                     isChecked={categoryCheckedStates[category] || false}
                     onCategoryCheckboxChange={handleCategoryCheckboxChange}
                   />

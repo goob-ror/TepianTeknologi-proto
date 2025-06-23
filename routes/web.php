@@ -31,6 +31,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Order processing routes
     Route::post('/order/create', [HomeController::class, 'createOrder'])->name('order.create');
+
+    // Transaction proof download for users
+    Route::get('/order/{order}/transaction-proof', [HomeController::class, 'downloadTransactionProof'])->name('order.transaction-proof');
 });
 
 Route::get('/about', function () {
@@ -97,9 +100,15 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('admin/orders/pending', [OrderController::class, 'pending'])->name('admin.orders.pending');
     Route::get('admin/orders/pending-count', [OrderController::class, 'getPendingCount'])->name('admin.orders.pending-count');
     Route::get('admin/orders/export', [OrderController::class, 'export'])->name('admin.orders.export');
+    Route::get('admin/orders/export-period', [OrderController::class, 'exportTimePeriod'])->name('admin.orders.export-period');
     Route::get('admin/orders/statistics', [OrderController::class, 'statistics'])->name('admin.orders.statistics');
     Route::patch('admin/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.update-status');
     Route::post('admin/orders/bulk-update', [OrderController::class, 'bulkUpdateStatus'])->name('admin.orders.bulk-update');
+    Route::get('admin/orders/{order}/transaction-proof', [OrderController::class, 'downloadTransactionProof'])->name('admin.orders.transaction-proof');
+    Route::post('admin/orders/{order}/upload-payment-proof', [OrderController::class, 'uploadPaymentProof'])->name('admin.orders.upload-payment-proof');
+    Route::patch('admin/orders/{order}/validate-payment', [OrderController::class, 'validatePaymentProof'])->name('admin.orders.validate-payment');
+    Route::post('admin/orders/{order}/upload-payment-proof', [OrderController::class, 'uploadPaymentProof'])->name('admin.orders.upload-payment-proof');
+    Route::patch('admin/orders/{order}/validate-payment', [OrderController::class, 'validatePaymentProof'])->name('admin.orders.validate-payment');
 
     // Order resource routes
     Route::resource('admin/orders', OrderController::class, [

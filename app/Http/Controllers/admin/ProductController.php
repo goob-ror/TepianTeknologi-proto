@@ -47,7 +47,9 @@ class ProductController extends Controller
 
         // Get additional dashboard statistics
         $totalOrders = Pesanan::count();
-        $totalRevenue = Pesanan::whereIn('status', ['dibayar', 'dikirim', 'selesai'])->sum('total_harga');
+        $dailySales = Pesanan::whereIn('status', ['dibayar', 'dikirim', 'selesai'])
+            ->whereDate('created_at', today())
+            ->sum('total_harga');
         $pendingOrders = Pesanan::where('status', 'menunggu')->count();
         $completedOrders = Pesanan::where('status', 'selesai')->count();
 
@@ -58,7 +60,7 @@ class ProductController extends Controller
                 'totalCategories' => $totalCategories,
                 'totalBrands' => $totalBrands,
                 'totalOrders' => $totalOrders,
-                'totalRevenue' => $totalRevenue,
+                'dailySales' => $dailySales,
                 'pendingOrders' => $pendingOrders,
                 'completedOrders' => $completedOrders,
             ],

@@ -41,7 +41,7 @@ interface Stats {
     totalCategories: number;
     totalBrands: number;
     totalOrders: number;
-    totalRevenue: number;
+    dailySales: number;
     pendingOrders: number;
     completedOrders: number;
 }
@@ -119,10 +119,10 @@ export default function Dashboard({ stats, lowStockProducts, recentProducts, sal
                         colorTheme="blue"
                     />
                     <StatCard
-                        title="Total Revenue"
-                        value={formatCurrency(stats.totalRevenue || 0)}
+                        title="Today's Sales"
+                        value={formatCurrency(stats.dailySales || 0)}
                         icon={TrendingUp}
-                        description="From completed orders"
+                        description="Today's completed orders"
                         colorTheme="green"
                     />
                     <StatCard

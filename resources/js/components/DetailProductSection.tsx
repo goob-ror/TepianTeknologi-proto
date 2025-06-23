@@ -1,15 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { Product } from '../types';
 import { getProductImage, formatPrice, getEffectivePrice, getDiscountPercentage } from '../utils/productUtils';
+import { generatePriceRangeOptions } from '../utils/priceUtils';
 import { router } from '@inertiajs/react';
 import { useCart } from '../hooks/useCart';
 import Swal from 'sweetalert2';
 
 interface DetailProductSectionProps {
   product: Product;
+  highestPrice: number;
 }
 
-export default function DetailProductSection({ product }: DetailProductSectionProps) {
+export default function DetailProductSection({ product, highestPrice }: DetailProductSectionProps) {
+  // Generate dynamic price range options
+  const priceRangeOptions = generatePriceRangeOptions(highestPrice);
   // Add CSS animations for price filter dropdown
   const dropdownAnimationStyles = `
     @keyframes dropdownFadeIn {
@@ -56,14 +60,107 @@ export default function DetailProductSection({ product }: DetailProductSectionPr
   const [isPriceFilterOpen, setIsPriceFilterOpen] = useState(false);
   const [selectedPriceFilter, setSelectedPriceFilter] = useState('Semua Harga');
   const [selectedPriceRange, setSelectedPriceRange] = useState('price-all');
+  const [customMinPrice, setCustomMinPrice] = useState(0);
+  const [customMaxPrice, setCustomMaxPrice] = useState(priceRangeOptions.slider.max);
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isUserInteracting, setIsUserInteracting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Initialize custom price values when priceRangeOptions changes
+  useEffect(() => {
+    setCustomMaxPrice(priceRangeOptions.slider.max);
+  }, [priceRangeOptions.slider.max]);
+
   const handlePriceRangeChange = (value: string, label: string) => {
+    // Mark that user is interacting to prevent useEffect override
+    setIsUserInteracting(true);
+
+    // Always update the selected state first
     setSelectedPriceRange(value);
     setSelectedPriceFilter(label);
+
+    // Handle custom range selection differently
+    if (value === 'custom') {
+      // For custom range, just update state and keep dropdown open
+      // Initialize custom values to current defaults
+      setCustomMinPrice(0);
+      setCustomMaxPrice(priceRangeOptions.slider.max);
+      // Don't close dropdown, don't apply filter yet
+      return;
+    }
+
+    // For predefined ranges, update custom values
+    if (value === 'price-all') {
+      setCustomMinPrice(0);
+      setCustomMaxPrice(priceRangeOptions.slider.max);
+    } else if (value === 'price-range1') {
+      setCustomMinPrice(priceRangeOptions.option1.min);
+      setCustomMaxPrice(priceRangeOptions.option1.max);
+    } else if (value === 'price-range2') {
+      setCustomMinPrice(priceRangeOptions.option2.min);
+      setCustomMaxPrice(priceRangeOptions.option2.max);
+    } else if (value === 'price-range3') {
+      setCustomMinPrice(priceRangeOptions.option3.min);
+      setCustomMaxPrice(priceRangeOptions.option3.max);
+    }
+
+    // Close dropdown for predefined ranges
     setIsPriceFilterOpen(false);
+
+    // Reset user interaction flag
+    setIsUserInteracting(false);
+  };
+
+  const handleCustomMinChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.max(0, parseInt(event.target.value) || 0);
+    const clampedValue = Math.min(value, customMaxPrice); // Ensure min doesn't exceed max
+    setCustomMinPrice(clampedValue);
+
+    // Update display in real-time
+    const formattedRange = `Rp ${clampedValue.toLocaleString('id-ID')} - Rp ${customMaxPrice.toLocaleString('id-ID')}`;
+    setSelectedPriceFilter(formattedRange);
+  };
+
+  const handleCustomMaxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value) || priceRangeOptions.slider.max;
+    const clampedValue = Math.max(customMinPrice, Math.min(value, priceRangeOptions.slider.max)); // Ensure max is within bounds
+    setCustomMaxPrice(clampedValue);
+
+    // Update display in real-time
+    const formattedRange = `Rp ${customMinPrice.toLocaleString('id-ID')} - Rp ${clampedValue.toLocaleString('id-ID')}`;
+    setSelectedPriceFilter(formattedRange);
+  };
+
+  const handleCustomRangeApply = () => {
+    // Close the dropdown
+    setIsPriceFilterOpen(false);
+
+    // Reset user interaction flag
+    setIsUserInteracting(false);
+
+    // Apply the custom filter
+    const currentParams = new URLSearchParams(window.location.search);
+
+    if (customMinPrice === 0 && customMaxPrice === priceRangeOptions.slider.max) {
+      // If at full range, remove price filters (equivalent to Semua Harga)
+      currentParams.delete('price_min');
+      currentParams.delete('price_max');
+      setSelectedPriceFilter('Semua Harga');
+      setSelectedPriceRange('price-all');
+    } else {
+      // Apply custom price range
+      currentParams.set('price_min', customMinPrice.toString());
+      currentParams.set('price_max', customMaxPrice.toString());
+      // Update the display label
+      const formattedRange = `Rp ${customMinPrice.toLocaleString('id-ID')} - Rp ${customMaxPrice.toLocaleString('id-ID')}`;
+      setSelectedPriceFilter(formattedRange);
+    }
+
+    router.get('/katalog', Object.fromEntries(currentParams), {
+      preserveState: true,
+      preserveScroll: true,
+    });
   };
 
   const handleAddToCart = async () => {
@@ -319,9 +416,9 @@ export default function DetailProductSection({ product }: DetailProductSectionPr
                       id="price-range1"
                       name="price-range"
                       checked={selectedPriceRange === 'price-range1'}
-                      onChange={() => handlePriceRangeChange('price-range1', 'Rp 0 - Rp 1.000.000')}
+                      onChange={() => handlePriceRangeChange('price-range1', priceRangeOptions.option1.label)}
                     />
-                    <label htmlFor="price-range1" style={{ fontSize: '12px' }}>Rp 0 - Rp 1.000.000</label>
+                    <label htmlFor="price-range1" style={{ fontSize: '12px' }}>{priceRangeOptions.option1.label}</label>
                   </div>
                   <div
                     className="checkbox-item"
@@ -348,9 +445,9 @@ export default function DetailProductSection({ product }: DetailProductSectionPr
                       id="price-range2"
                       name="price-range"
                       checked={selectedPriceRange === 'price-range2'}
-                      onChange={() => handlePriceRangeChange('price-range2', 'Rp 1.000.000 - Rp 5.000.000')}
+                      onChange={() => handlePriceRangeChange('price-range2', priceRangeOptions.option2.label)}
                     />
-                    <label htmlFor="price-range2" style={{ fontSize: '12px' }}>Rp 1.000.000 - Rp 5.000.000</label>
+                    <label htmlFor="price-range2" style={{ fontSize: '12px' }}>{priceRangeOptions.option2.label}</label>
                   </div>
                   <div
                     className="checkbox-item"
@@ -377,47 +474,147 @@ export default function DetailProductSection({ product }: DetailProductSectionPr
                       id="price-range3"
                       name="price-range"
                       checked={selectedPriceRange === 'price-range3'}
-                      onChange={() => handlePriceRangeChange('price-range3', 'Rp 5.000.000 - Rp 10.000.000')}
+                      onChange={() => handlePriceRangeChange('price-range3', priceRangeOptions.option3.label)}
                     />
-                    <label htmlFor="price-range3" style={{ fontSize: '12px' }}>Rp 5.000.000 - Rp 10.000.000</label>
+                    <label htmlFor="price-range3" style={{ fontSize: '12px' }}>{priceRangeOptions.option3.label}</label>
+                  </div>
+                  <div
+                    className="checkbox-item"
+                    style={{
+                      animation: isPriceFilterOpen ? 'bounceIn 0.5s ease-out 0.5s both' : 'none',
+                      transition: 'transform 0.2s ease, background-color 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '5px',
+                      borderRadius: '4px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateX(3px)';
+                      e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateX(0)';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      id="price-custom"
+                      name="price-range"
+                      checked={selectedPriceRange === 'custom'}
+                      onChange={() => handlePriceRangeChange('custom', 'Custom Range')}
+                    />
+                    <label htmlFor="price-custom" style={{ fontSize: '12px' }}>Custom Range</label>
                   </div>
                 </div>
-                <div className="custom-price-range">
-                  <div className="price-slider">
-                    <div className="slider-container">
-                      <div
-                        className="price-range"
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          fontSize: 'var(--font-size-small)'
-                        }}
-                      >
-                        <p>Rp. 0</p>
-                        <p>Rp. 1.000.000</p>
-                      </div>
-                      <input
-                        type="range"
-                        id="price-slider"
-                        min="0"
-                        max="10000000"
-                        step="100000"
-                        style={{
-                          animation: isPriceFilterOpen ? 'bounceIn 0.6s ease-out 0.5s both' : 'none',
-                          transition: 'transform 0.2s ease',
-                          width: '100%'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.02)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                        }}
-                      />
+                {/* Custom Range Section - Only shows when Custom Range is selected */}
+                {selectedPriceRange === 'custom' && (
+                  <div
+                    className="custom-price-range"
+                    style={{
+                      animation: 'bounceIn 0.5s ease-out',
+                      padding: '15px 0',
+                      borderTop: '1px solid #E0E0E0',
+                      marginTop: '10px'
+                    }}
+                  >
+                    <div style={{ marginBottom: '10px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--grey-text)' }}>
+                        Custom Price Range:
+                      </label>
                     </div>
+                    <div style={{ marginBottom: '15px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                        <span style={{ fontSize: '10px', color: 'var(--grey-text)' }}>
+                          Min: Rp {customMinPrice.toLocaleString('id-ID')}
+                        </span>
+                        <span style={{ fontSize: '10px', color: 'var(--grey-text)' }}>
+                          Max: Rp {customMaxPrice.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+
+                      <div style={{ position: 'relative', marginBottom: '10px' }}>
+                        <label style={{ fontSize: '10px', color: 'var(--grey-text)', display: 'block', marginBottom: '5px' }}>
+                          Price Range:
+                        </label>
+
+                        {/* Dual Range Slider Container */}
+                        <div style={{ position: 'relative', height: '6px', backgroundColor: '#D9D9D9', borderRadius: '3px' }}>
+                          {/* Active range track */}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              height: '6px',
+                              backgroundColor: 'var(--primary-color)',
+                              borderRadius: '3px',
+                              left: `${(customMinPrice / priceRangeOptions.slider.max) * 100}%`,
+                              width: `${((customMaxPrice - customMinPrice) / priceRangeOptions.slider.max) * 100}%`
+                            }}
+                          />
+
+                          {/* Min slider */}
+                          <input
+                            type="range"
+                            min={0}
+                            max={priceRangeOptions.slider.max}
+                            step={100000}
+                            value={customMinPrice}
+                            onChange={handleCustomMinChange}
+                            style={{
+                              position: 'absolute',
+                              width: '100%',
+                              height: '6px',
+                              background: 'transparent',
+                              outline: 'none',
+                              cursor: 'pointer',
+                              appearance: 'none',
+                              WebkitAppearance: 'none',
+                              zIndex: 1
+                            }}
+                          />
+
+                          {/* Max slider */}
+                          <input
+                            type="range"
+                            min={0}
+                            max={priceRangeOptions.slider.max}
+                            step={100000}
+                            value={customMaxPrice}
+                            onChange={handleCustomMaxChange}
+                            style={{
+                              position: 'absolute',
+                              width: '100%',
+                              height: '6px',
+                              background: 'transparent',
+                              outline: 'none',
+                              cursor: 'pointer',
+                              appearance: 'none',
+                              WebkitAppearance: 'none',
+                              zIndex: 2
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleCustomRangeApply}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        backgroundColor: 'var(--primary-color)',
+                        color: 'var(--light-text)',
+                        border: 'none',
+                        borderRadius: '5px',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      Apply Custom Range
+                    </button>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

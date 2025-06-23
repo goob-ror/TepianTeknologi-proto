@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import { SharedData } from '../types';
+import { useCart } from '../hooks/useCart';
 
 interface SearchProduct {
   id: number;
@@ -16,6 +17,7 @@ interface SearchProduct {
 
 export default function Navigation() {
   const { auth } = usePage<SharedData>().props;
+  const { totalItems } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<SearchProduct[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -449,6 +451,20 @@ export default function Navigation() {
             title="Keranjang Belanja"
           >
             <img src="/icons/shopping-cart.png" alt="Checkout" className="w-[45px] h-[39px]" />
+            {/* Cart Counter */}
+            {totalItems > 0 && (
+              <div
+                className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-[20px] flex items-center justify-center"
+                style={{
+                  fontSize: '10px',
+                  lineHeight: '1',
+                  padding: totalItems > 99 ? '2px 4px' : '0',
+                  minWidth: totalItems > 99 ? 'auto' : '20px'
+                }}
+              >
+                {totalItems > 99 ? '99+' : totalItems}
+              </div>
+            )}
             <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
               Keranjang Belanja
             </span>
