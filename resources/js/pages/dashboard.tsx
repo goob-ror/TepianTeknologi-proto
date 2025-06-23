@@ -1,4 +1,4 @@
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
@@ -27,10 +27,10 @@ export default function Dashboard() {
 
     const { data: profileData, setData: setProfileData, patch: patchProfile, errors: profileErrors, processing: profileProcessing, recentlySuccessful: profileSuccess } = useForm<Required<ProfileForm>>({
         name: auth.user.name || auth.user.nama_lengkap || '',
-        fullname: (auth.user as any).fullname || auth.user.nama_lengkap || '',
+        fullname: (auth.user as { fullname?: string }).fullname || auth.user.nama_lengkap || '',
         email: auth.user.email || '',
-        phone: (auth.user as any).phone || '',
-        address: (auth.user as any).address || '',
+        phone: (auth.user as { phone?: string }).phone || '',
+        address: (auth.user as { address?: string }).address || '',
     });
 
     const { data: passwordData, setData: setPasswordData, patch: patchPassword, errors: passwordErrors, processing: passwordProcessing, recentlySuccessful: passwordSuccess, reset: resetPassword } = useForm<Required<PasswordForm>>({
@@ -165,7 +165,7 @@ export default function Dashboard() {
                                 />
                             </div>
                             <h1 style={{ fontSize: '2rem', fontWeight: '600', marginBottom: '8px' }}>
-                                {(auth.user as any).fullname || auth.user.name}
+                                {(auth.user as { fullname?: string }).fullname || auth.user.name}
                             </h1>
                             <p style={{ fontSize: '1.1rem', opacity: '0.9' }}>
                                 {auth.user.email}

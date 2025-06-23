@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Save, User, MapPin, Phone, Package, CreditCard, Truck, Clock, CheckCircle, XCircle, Edit, Upload, FileText, Eye } from 'lucide-react';
+import { ArrowLeft, Save, User, Package, CreditCard, Truck, Clock, CheckCircle, XCircle, Upload, FileText, Eye } from 'lucide-react';
 
 interface OrderDetail {
     id: number;
@@ -94,7 +94,7 @@ export default function ShowOrder({ order }: Props) {
         },
     ];
 
-    const { data, setData, patch, processing, errors } = useForm({
+    const { data, setData, patch, processing } = useForm({
         status: order.status,
         catatan: '',
         shipping_info: {
@@ -191,7 +191,7 @@ export default function ShowOrder({ order }: Props) {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <Label htmlFor="status">Update Status</Label>
-                                            <Select value={data.status} onValueChange={(value) => setData('status', value as any)}>
+                                            <Select value={data.status} onValueChange={(value) => setData('status', value as 'menunggu' | 'dibayar' | 'dikirim' | 'selesai' | 'dibatalkan')}>
                                                 <SelectTrigger>
                                                     <SelectValue />
                                                 </SelectTrigger>

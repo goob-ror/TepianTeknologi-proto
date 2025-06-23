@@ -5,14 +5,11 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
-    BookOpen,
-    Folder,
     LayoutGrid,
     Users,
     Tag,
     Settings,
     ShoppingCart,
-    BarChart3,
     UserCog,
     Store,
     Award

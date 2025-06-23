@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 
 interface GoogleMapProps {
   latitude: number;
@@ -8,12 +8,9 @@ interface GoogleMapProps {
 }
 
 export default function GoogleMap({
-  latitude,
-  longitude,
   className = '',
   style = {}
-}: GoogleMapProps) {
-  const [mapType, setMapType] = useState<'roadmap' | 'satellite'>('satellite');
+}: Omit<GoogleMapProps, 'latitude' | 'longitude'>) {
 
   const defaultStyle: React.CSSProperties = {
     width: '100%',
@@ -34,7 +31,7 @@ export default function GoogleMap({
         allowFullScreen
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
-      />      
+      />
     </div>
   );
 }

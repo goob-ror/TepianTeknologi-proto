@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Search, X, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface Order {
     id: number;
@@ -59,11 +59,11 @@ export default function PendingOrders({ orders, filters = {} }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [currentTime, setCurrentTime] = useState(new Date());
 
-    const handleSearch = () => {
+    const handleSearch = useCallback(() => {
         const params = new URLSearchParams();
         if (searchTerm) params.append('search', searchTerm);
         router.get(`/admin/orders/pending?${params.toString()}`);
-    };
+    }, [searchTerm]);
 
     const handleClearFilters = () => {
         setSearchTerm('');
@@ -100,7 +100,7 @@ export default function PendingOrders({ orders, filters = {} }: Props) {
         }, 500);
 
         return () => clearTimeout(delayedSearch);
-    }, [searchTerm]);
+    }, [searchTerm, filters.search, handleSearch]);
 
     const formatCurrency = (amount: number | string | null | undefined) => {
         const numericAmount = parseFloat(amount?.toString() || '0') || 0;

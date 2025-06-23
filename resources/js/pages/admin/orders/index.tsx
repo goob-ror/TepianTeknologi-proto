@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, Search, Filter, X, Download, Calendar, ShoppingCart, Package, Truck, CheckCircle, XCircle, Clock, FileSpreadsheet, AlertTriangle, ChevronsUpDown, ChevronUp, ChevronDown, Loader2, FileText, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 interface Order {
@@ -129,11 +129,11 @@ export default function OrdersIndex({ orders, filters = {} }: Props) {
     const [sortOrder, setSortOrder] = useState(filters.sort_order || 'asc');
     const [pendingInfo, setPendingInfo] = useState({ pending_count: 0, has_pending: false, message: 'Loading...' });
     const [isLoadingPending, setIsLoadingPending] = useState(true);
-    const [currentTime, setCurrentTime] = useState(new Date());
+
     const [collapsedSections, setCollapsedSections] = useState<{[key: string]: boolean}>({});
     const [viewMode, setViewMode] = useState<'table' | 'hierarchical'>((filters.view_mode as 'table' | 'hierarchical') || 'hierarchical');
 
-    const handleSearch = () => {
+    const handleSearch = useCallback(() => {
         const params = new URLSearchParams();
 
         if (searchTerm) params.append('search', searchTerm);
@@ -145,7 +145,7 @@ export default function OrdersIndex({ orders, filters = {} }: Props) {
         params.append('view_mode', viewMode);
 
         router.get(`/admin/orders?${params.toString()}`);
-    };
+    }, [searchTerm, selectedStatus, dateFrom, dateTo, sortBy, sortOrder, viewMode]);
 
     const handleClearFilters = () => {
         setSearchTerm('');
@@ -227,7 +227,7 @@ export default function OrdersIndex({ orders, filters = {} }: Props) {
         }, 500);
 
         return () => clearTimeout(delayedSearch);
-    }, [searchTerm]);
+    }, [searchTerm, filters.search, handleSearch]);
 
     useEffect(() => {
         fetchPendingInfo();
@@ -236,13 +236,7 @@ export default function OrdersIndex({ orders, filters = {} }: Props) {
         return () => clearInterval(interval);
     }, []);
 
-    // Real-time clock update for age tracking
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 60000); // Update every minute
-        return () => clearInterval(interval);
-    }, []);
+
 
     const toggleSection = (sectionKey: string) => {
         setCollapsedSections(prev => ({

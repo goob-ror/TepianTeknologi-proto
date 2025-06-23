@@ -21,6 +21,17 @@ interface CartItem {
   is_discount: boolean;
 }
 
+interface ProductData {
+  id: number;
+  nama_produk: string;
+  harga: number;
+  harga_diskon?: number;
+  is_diskon: boolean;
+  gambar: string;
+  stok: number;
+  category: string;
+}
+
 export function useCart() {
   const { props } = usePage();
   const user = props.auth?.user as User | undefined;
@@ -53,7 +64,7 @@ export function useCart() {
   }, [userId]);
 
   // Add item to cart
-  const addToCart = useCallback(async (productData: any, quantity: number = 1) => {
+  const addToCart = useCallback(async (productData: ProductData, quantity: number = 1) => {
     try {
       // Add to localStorage
       CartStorage.addItem(productData, quantity, userId);

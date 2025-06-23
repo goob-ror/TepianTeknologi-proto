@@ -9,7 +9,7 @@ import { Plus, Edit, Trash2, Eye, ToggleLeft, ToggleRight, Search, Filter, X, Ch
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination } from '@/components/ui/pagination';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface Category {
     id: number;
@@ -109,7 +109,7 @@ export default function ProductsIndex({ products, categories, brands, filters }:
         }).format(parseFloat(price));
     };
 
-    const handleSearch = () => {
+    const handleSearch = useCallback(() => {
         const params = new URLSearchParams();
 
         if (searchTerm) params.append('search', searchTerm);
@@ -121,7 +121,7 @@ export default function ProductsIndex({ products, categories, brands, filters }:
         if (sortOrder) params.append('sort_order', sortOrder);
 
         router.get(`/admin/products?${params.toString()}`);
-    };
+    }, [searchTerm, selectedCategory, selectedBrand, selectedStockStatus, selectedStatus, sortBy, sortOrder]);
 
     const handleClearFilters = () => {
         setSearchTerm('');
@@ -173,7 +173,7 @@ export default function ProductsIndex({ products, categories, brands, filters }:
         }, 500);
 
         return () => clearTimeout(delayedSearch);
-    }, [searchTerm]);
+    }, [searchTerm, filters.search, handleSearch]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

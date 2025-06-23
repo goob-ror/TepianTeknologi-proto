@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/admin-app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+
 import { CountBadge } from '@/components/admin/CountBadge';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 

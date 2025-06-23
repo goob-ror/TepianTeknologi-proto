@@ -62,9 +62,8 @@ export default function DetailProductSection({ product, highestPrice }: DetailPr
   const [selectedPriceRange, setSelectedPriceRange] = useState('price-all');
   const [customMinPrice, setCustomMinPrice] = useState(0);
   const [customMaxPrice, setCustomMaxPrice] = useState(priceRangeOptions.slider.max);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [isUserInteracting, setIsUserInteracting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Initialize custom price values when priceRangeOptions changes
@@ -73,9 +72,6 @@ export default function DetailProductSection({ product, highestPrice }: DetailPr
   }, [priceRangeOptions.slider.max]);
 
   const handlePriceRangeChange = (value: string, label: string) => {
-    // Mark that user is interacting to prevent useEffect override
-    setIsUserInteracting(true);
-
     // Always update the selected state first
     setSelectedPriceRange(value);
     setSelectedPriceFilter(label);
@@ -107,9 +103,6 @@ export default function DetailProductSection({ product, highestPrice }: DetailPr
 
     // Close dropdown for predefined ranges
     setIsPriceFilterOpen(false);
-
-    // Reset user interaction flag
-    setIsUserInteracting(false);
   };
 
   const handleCustomMinChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,9 +128,6 @@ export default function DetailProductSection({ product, highestPrice }: DetailPr
   const handleCustomRangeApply = () => {
     // Close the dropdown
     setIsPriceFilterOpen(false);
-
-    // Reset user interaction flag
-    setIsUserInteracting(false);
 
     // Apply the custom filter
     const currentParams = new URLSearchParams(window.location.search);

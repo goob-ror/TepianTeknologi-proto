@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Upload, X, Crop } from 'lucide-react';
+import { ArrowLeft, Upload, X } from 'lucide-react';
 import { useState } from 'react';
 
 // Helper function to format number as IDR
@@ -285,7 +285,7 @@ export default function EditProduct({ product, categories, brands }: Props) {
                                         id="is_diskon"
                                         checked={data.is_diskon}
                                         onCheckedChange={(checked) => {
-                                            setData('is_diskon', checked as any);
+                                            setData('is_diskon', checked);
                                             if (!checked) {
                                                 setData('harga_diskon', '');
                                                 setData('diskon_persen', '');
@@ -310,7 +310,7 @@ export default function EditProduct({ product, categories, brands }: Props) {
                                                         value="price"
                                                         checked={data.discount_type === 'price'}
                                                         onChange={(e) => {
-                                                            setData('discount_type', e.target.value as any);
+                                                            setData('discount_type', e.target.value as 'price' | 'percentage');
                                                             setData('diskon_persen', '');
                                                         }}
                                                     />
@@ -324,7 +324,7 @@ export default function EditProduct({ product, categories, brands }: Props) {
                                                         value="percentage"
                                                         checked={data.discount_type === 'percentage'}
                                                         onChange={(e) => {
-                                                            setData('discount_type', e.target.value as any);
+                                                            setData('discount_type', e.target.value as 'price' | 'percentage');
                                                             setData('harga_diskon', '');
                                                         }}
                                                     />
@@ -451,7 +451,7 @@ export default function EditProduct({ product, categories, brands }: Props) {
                                 <Switch
                                     id="is_active"
                                     checked={data.is_active}
-                                    onCheckedChange={(checked) => setData('is_active', checked as any)}
+                                    onCheckedChange={(checked) => setData('is_active', checked)}
                                 />
                                 <Label htmlFor="is_active">Active Product</Label>
                             </div>

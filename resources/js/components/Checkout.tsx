@@ -20,11 +20,7 @@ interface CartItem {
   is_discount: boolean;
 }
 
-interface CheckoutProps {
-  cartItems?: CartItem[];
-  totalPrice?: number;
-  totalItems?: number;
-}
+
 
 
 
@@ -529,7 +525,7 @@ const OrderSummary = ({ totalItems, totalPrice, onPayNow, isProcessingOrder }: O
   );
 };
 
-export default function Checkout({ cartItems: initialCartItems, totalPrice: initialTotalPrice, totalItems: initialTotalItems }: CheckoutProps) {
+export default function Checkout() {
   // Add CSS to hide webkit spin buttons and style scrollbar
   const customStyles = `
     input[type="number"]::-webkit-outer-spin-button,
@@ -1064,8 +1060,6 @@ export default function Checkout({ cartItems: initialCartItems, totalPrice: init
   };
 
   // Calculate totals from current cart state
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const selectedItems = cartItems.filter(item => item.checked);
   const selectedTotalItems = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
   const selectedTotalPrice = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);

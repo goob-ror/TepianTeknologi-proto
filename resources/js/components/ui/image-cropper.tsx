@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { X, Crop as CropIcon, Upload } from 'lucide-react';
+import { Crop as CropIcon } from 'lucide-react';
 import 'react-image-crop/dist/ReactCrop.css';
 
 interface ImageCropperProps {
@@ -165,7 +165,7 @@ export function ImageCropper({ isOpen, onClose, onCropComplete, originalFile }: 
                     </div>
                 </div>
 
-                <DialogFooter style={{ 
+                <DialogFooter style={{
                     color: 'var(--light-text)'
                  }}>
                     <Button variant="outline" onClick={handleClose}>
@@ -174,7 +174,7 @@ export function ImageCropper({ isOpen, onClose, onCropComplete, originalFile }: 
                     <Button
                         onClick={handleCropComplete}
                         disabled={!completedCrop || isProcessing}
-                        style={{ 
+                        style={{
                             color: 'var(--light-text)'
                          }}
                     >

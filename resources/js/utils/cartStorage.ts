@@ -157,7 +157,18 @@ export class CartStorage {
   /**
    * Get formatted items for display
    */
-  static getFormattedItems(userId?: number): any[] {
+  static getFormattedItems(userId?: number): Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image: string;
+    category: unknown;
+    checked: boolean;
+    stock: number;
+    original_price: number;
+    is_discount: boolean;
+  }> {
     const cart = this.getItems(userId);
     return Object.values(cart).map(item => {
       const product = item.product;

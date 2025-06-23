@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Eye, Search, Filter, X, UserCheck, UserX } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface Props {
     users: User[];
@@ -40,7 +40,7 @@ export default function UsersIndex({ users = [], filters = {} }: Props) {
         }
     };
 
-    const handleSearch = () => {
+    const handleSearch = useCallback(() => {
         const params = new URLSearchParams();
 
         if (searchTerm) params.append('search', searchTerm);
@@ -48,7 +48,7 @@ export default function UsersIndex({ users = [], filters = {} }: Props) {
         if (selectedStatus && selectedStatus !== 'all') params.append('status', selectedStatus);
 
         router.get(`/admin/users?${params.toString()}`);
-    };
+    }, [searchTerm, selectedRole, selectedStatus]);
 
     const handleClearFilters = () => {
         setSearchTerm('');
@@ -65,7 +65,7 @@ export default function UsersIndex({ users = [], filters = {} }: Props) {
         }, 500);
 
         return () => clearTimeout(delayedSearch);
-    }, [searchTerm]);
+    }, [searchTerm, filters.search, handleSearch]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

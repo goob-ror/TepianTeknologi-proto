@@ -16,7 +16,7 @@ interface LoginProps {
     rateLimitEmail?: string;
 }
 
-export default function Login({ status, canResetPassword, rateLimitSeconds = 0, rateLimitEmail = '' }: LoginProps) {
+export default function Login({ status, rateLimitSeconds = 0, rateLimitEmail = '' }: Omit<LoginProps, 'canResetPassword'>) {
     const [isLoading, setIsLoading] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
     const [remainingSeconds, setRemainingSeconds] = useState(rateLimitSeconds);
