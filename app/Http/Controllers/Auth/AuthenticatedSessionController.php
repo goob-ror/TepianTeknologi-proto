@@ -60,7 +60,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         if ($user->role === UserRole::user) {
-            return redirect()->intended('/');
+            return redirect()->intended(route('dashboard', absolute: false));
         }
 
         abort(403, 'Unauthorized User!');

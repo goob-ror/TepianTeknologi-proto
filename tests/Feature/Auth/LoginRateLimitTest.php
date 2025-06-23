@@ -15,7 +15,7 @@ test('login is rate limited after 3 failed attempts', function () {
             'email' => 'test@example.com',
             'password' => 'wrong-password',
         ]);
-        
+
         $response->assertSessionHasErrors('email');
     }
 
@@ -51,7 +51,10 @@ test('successful login clears rate limiting', function () {
         'password' => 'correct-password',
     ]);
 
-    $response->assertRedirect('/');
+    $response->assertRedirect(route('dashboard', absolute: false));
+
+    // Logout the user to test failed attempts again
+    $this->post('/logout');
 
     // Should be able to make failed attempts again
     $response = $this->post('/login', [
