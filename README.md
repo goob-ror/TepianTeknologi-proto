@@ -27,7 +27,7 @@ A modern e-commerce platform built with Laravel 12, React 19, TypeScript, and Ta
 - **React 19 + TypeScript**: Type-safe frontend development with latest React features
 - **Inertia.js**: SPA experience without API complexity
 - **Tailwind CSS v4**: Modern utility-first CSS framework with latest features
-- **SQLite/MySQL**: Flexible database options
+- **MySQL Database**: Robust relational database management
 - **PDF Generation**: Transaction proof documents
 - **File Upload**: Image handling with validation
 - **Testing**: Comprehensive test suite with Pest
@@ -59,8 +59,10 @@ Before installing this project, ensure your system meets the following requireme
 - GD PHP Extension (for image processing)
 - SQLite3 PHP Extension (if using SQLite)
 
+### Required Database
+- **MySQL**: ^8.0 (primary database)
+
 ### Optional but Recommended
-- **MySQL**: ^8.0 or **PostgreSQL**: ^13.0 (for production)
 - **Redis**: ^6.0 (for caching and sessions)
 - **Supervisor**: For queue management in production
 
@@ -91,6 +93,7 @@ If any of these are missing or outdated, install/update them:
 
 **For Windows:**
 - Download PHP from [php.net](https://www.php.net/downloads.php)
+- Download MySQL from [mysql.com](https://dev.mysql.com/downloads/mysql/) or use XAMPP
 - Download Node.js from [nodejs.org](https://nodejs.org/) (LTS version recommended)
 - Download Composer from [getcomposer.org](https://getcomposer.org/download/)
 - Download Git from [git-scm.com](https://git-scm.com/download/win)
@@ -98,7 +101,13 @@ If any of these are missing or outdated, install/update them:
 **For macOS:**
 ```bash
 # Using Homebrew
-brew install php@8.2 node composer git
+brew install php@8.2 mysql node composer git
+
+# Start MySQL service
+brew services start mysql
+
+# Secure MySQL installation
+mysql_secure_installation
 ```
 
 **For Ubuntu/Debian:**
@@ -107,7 +116,11 @@ brew install php@8.2 node composer git
 sudo apt update
 
 # Install PHP 8.2 and extensions
-sudo apt install php8.2 php8.2-cli php8.2-common php8.2-mysql php8.2-zip php8.2-gd php8.2-mbstring php8.2-curl php8.2-xml php8.2-bcmath php8.2-sqlite3
+sudo apt install php8.2 php8.2-cli php8.2-common php8.2-mysql php8.2-zip php8.2-gd php8.2-mbstring php8.2-curl php8.2-xml php8.2-bcmath
+
+# Install MySQL Server
+sudo apt install mysql-server
+sudo mysql_secure_installation
 
 # Install Node.js (using NodeSource repository)
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
@@ -200,24 +213,13 @@ APP_LOCALE=en
 APP_FALLBACK_LOCALE=en
 APP_FAKER_LOCALE=en_US
 
-# Database Configuration (SQLite - Default)
-DB_CONNECTION=sqlite
-
-# For MySQL (uncomment and configure if preferred):
-# DB_CONNECTION=mysql
-# DB_HOST=127.0.0.1
-# DB_PORT=3306
-# DB_DATABASE=tepian_teknologi
-# DB_USERNAME=root
-# DB_PASSWORD=your_password
-
-# For PostgreSQL (uncomment and configure if preferred):
-# DB_CONNECTION=pgsql
-# DB_HOST=127.0.0.1
-# DB_PORT=5432
-# DB_DATABASE=tepian_teknologi
-# DB_USERNAME=postgres
-# DB_PASSWORD=your_password
+# Database Configuration (MySQL)
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=tepian_teknologi
+DB_USERNAME=root
+DB_PASSWORD=your_mysql_password
 
 # Session & Cache Configuration
 SESSION_DRIVER=database
@@ -239,16 +241,71 @@ VITE_APP_NAME="${APP_NAME}"
 
 ### Step 7: Database Setup
 
+#### Create MySQL Database
+
+**For XAMPP Users (Windows):**
+1. Start XAMPP Control Panel
+2. Start Apache and MySQL services
+3. Click "Admin" next to MySQL to open phpMyAdmin
+4. Create database `tepian_teknologi` with utf8mb4_unicode_ci collation
+5. Use `root` user with no password (default XAMPP setup)
+
+**For Standard MySQL Installation:**
 ```bash
-# Create SQLite database file (if using SQLite)
-# Windows
-type nul > database\database.sqlite
+# Connect to MySQL as root
+mysql -u root -p
 
-# Linux/macOS
-touch database/database.sqlite
+# Create database and user (run these commands in MySQL prompt)
+```
 
-# Verify database file was created
-ls -la database/
+```sql
+-- Create database
+CREATE DATABASE tepian_teknologi CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Create user (replace 'your_password' with a secure password)
+CREATE USER 'tepian_user'@'localhost' IDENTIFIED BY 'your_password';
+
+-- Grant privileges
+GRANT ALL PRIVILEGES ON tepian_teknologi.* TO 'tepian_user'@'localhost';
+
+-- Apply changes
+FLUSH PRIVILEGES;
+
+-- Exit MySQL
+EXIT;
+```
+
+#### Update Environment Configuration
+
+Update your `.env` file with the database credentials:
+
+**For XAMPP (Windows):**
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=tepian_teknologi
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+**For Standard MySQL Installation:**
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=tepian_teknologi
+DB_USERNAME=tepian_user
+DB_PASSWORD=your_password
+```
+
+#### Run Migrations and Seeders
+
+```bash
+# Test database connection
+php artisan tinker
+>>> DB::connection()->getPdo();
+>>> exit
 
 # Run database migrations
 php artisan migrate
@@ -261,6 +318,9 @@ php artisan db:seed
 
 # Verify database setup
 php artisan migrate:status
+
+# Check if tables were created
+mysql -u tepian_user -p tepian_teknologi -e "SHOW TABLES;"
 ```
 
 ### Step 8: Storage and Permissions Setup
@@ -464,8 +524,7 @@ TepianTeknologi-proto/
 ├── database/                   # Database Files
 │   ├── factories/             # Model factories for testing
 │   ├── migrations/            # Database migrations
-│   ├── seeders/              # Database seeders
-│   └── database.sqlite       # SQLite database file
+│   └── seeders/              # Database seeders
 ├── public/                    # Public Web Directory
 │   ├── build/                # Compiled assets (generated)
 │   ├── images/               # Static images
@@ -1038,18 +1097,28 @@ icacls bootstrap\cache /grant Everyone:F /T
 **Solutions**:
 ```bash
 # Check database configuration
-php artisan config:show database.connections
+php artisan config:show database.connections.mysql
 
 # Test database connection
 php artisan tinker
 >>> DB::connection()->getPdo();
 
-# For SQLite, ensure file exists and is writable
-touch database/database.sqlite
-chmod 664 database/database.sqlite
+# Verify MySQL service is running
+sudo systemctl status mysql
 
-# For MySQL, verify credentials and database exists
-mysql -u username -p -e "SHOW DATABASES;"
+# Test MySQL connection directly
+mysql -u tepian_user -p tepian_teknologi -e "SELECT 1;"
+
+# Check if database exists
+mysql -u root -p -e "SHOW DATABASES LIKE 'tepian_teknologi';"
+
+# Verify user permissions
+mysql -u root -p -e "SHOW GRANTS FOR 'tepian_user'@'localhost';"
+
+# Reset MySQL password if needed
+sudo mysql -u root -p
+ALTER USER 'tepian_user'@'localhost' IDENTIFIED BY 'new_password';
+FLUSH PRIVILEGES;
 ```
 
 #### Issue 6: Asset Build Issues
