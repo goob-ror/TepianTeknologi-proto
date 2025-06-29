@@ -1410,4 +1410,4 @@ The application is fully responsive and optimized for:
 
 ---
 
-**Made with ❤️ by TepianTeknologi Team**
+**Made by SecangkirKopi**
