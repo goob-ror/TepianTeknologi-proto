@@ -129,11 +129,14 @@ export default function Dashboard() {
                                     src={profileImage}
                                     alt="Profile"
                                     style={{
-                                        width: '120px',
-                                        height: '120px',
+                                        position: 'relative',
+                                        width: '150px',
+                                        height: '150px',
                                         borderRadius: '50%',
                                         border: '4px solid rgba(255, 255, 255, 0.3)',
-                                        objectFit: 'cover'
+                                        objectFit: 'cover',
+                                        justifyContent: 'center',
+                                        alignItems: 'center'
                                     }}
                                 />
                                 <label

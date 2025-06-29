@@ -220,16 +220,16 @@ export default function ShowOrder({ order }: Props) {
                                                     />
                                                 </div>
                                                 <div className="md:col-span-2">
-                                                    <Label htmlFor="nomor_resi">Tracking Number</Label>
+                                                    <Label htmlFor="nomor_resi">Tracking Number (Auto-Generated)</Label>
                                                     <Input
                                                         id="nomor_resi"
-                                                        value={data.shipping_info.nomor_resi}
-                                                        onChange={(e) => setData('shipping_info', {
-                                                            ...data.shipping_info,
-                                                            nomor_resi: e.target.value
-                                                        })}
-                                                        placeholder="Enter tracking number"
+                                                        value={order.shipping?.nomor_resi || "Will be auto-generated when shipped"}
+                                                        disabled
+                                                        className="bg-muted text-muted-foreground"
                                                     />
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        Format: TT + Timestamp + Order ID (e.g., TT25012915304500001)
+                                                    </p>
                                                 </div>
                                             </>
                                         )}

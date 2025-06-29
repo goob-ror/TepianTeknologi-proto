@@ -124,12 +124,17 @@ class OrderController extends Controller
         ]);
 
         // If status is changed to 'dikirim', update shipping info
-        if ($request->status === 'dikirim' && $request->filled('shipping_info')) {
+        if ($request->status === 'dikirim') {
+            // Auto-generate tracking number using timestamp and order ID
+            $timestamp = now()->format('ymdHis'); // YYMMDDHHMMSS
+            $orderId = str_pad($order->id, 4, '0', STR_PAD_LEFT);
+            $trackingNumber = 'TT' . $timestamp . $orderId;
+
             $order->shipping()->updateOrCreate(
                 ['pesanan_id' => $order->id],
                 [
-                    'nomor_resi' => $request->shipping_info['nomor_resi'] ?? null,
-                    'jasa_kirim' => $request->shipping_info['jasa_kirim'] ?? null,
+                    'nomor_resi' => $trackingNumber,
+                    'jasa_kirim' => $request->shipping_info['jasa_kirim'] ?? 'Default',
                     'status_kirim' => 'dikirim',
                     'tanggal_kirim' => now(),
                 ]
